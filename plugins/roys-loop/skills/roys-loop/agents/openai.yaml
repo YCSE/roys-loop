@@ -1,0 +1,4 @@
+interface:
+  display_name: "Roy's Loop"
+  short_description: "PM, coordinator and worker role rules"
+  default_prompt: "Use $roys-loop to route this goal through the Orca coordinator."

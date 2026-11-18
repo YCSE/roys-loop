@@ -1,0 +1,14 @@
+{
+  "name": "roys-loop",
+  "owner": {
+    "name": "Roy"
+  },
+  "description": "Marketplace for Roy's Loop: role rules for PMs, per-project Orca coordinators and Orca workers.",
+  "plugins": [
+    {
+      "name": "roys-loop",
+      "source": "./plugins/roys-loop",
+      "description": "Role rules for Roy's manager (dot), the Orca floating coordinator and Orca workers."
+    }
+  ]
+}

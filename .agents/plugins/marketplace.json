@@ -1,0 +1,20 @@
+{
+  "name": "roys-loop",
+  "interface": {
+    "displayName": "Roy's Loop"
+  },
+  "plugins": [
+    {
+      "name": "roys-loop",
+      "source": {
+        "source": "local",
+        "path": "./plugins/roys-loop"
+      },
+      "policy": {
+        "installation": "AVAILABLE",
+        "authentication": "ON_USE"
+      },
+      "category": "Productivity"
+    }
+  ]
+}
