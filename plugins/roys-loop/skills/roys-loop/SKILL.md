@@ -1,6 +1,6 @@
 ---
 name: roys-loop
-description: Roy's Loop role rules for PMs (dot, Hermes, grokbot), the Orca floating coordinator (one per project), and Orca workers. Use when you are a PM reporting loop status (running, stopped, blockers) or relaying Roy's goal or a GitHub or Tralalero request to a project's coordinator; when you are an Orca coordinator breaking work down, splitting several issues across parallel workers, assigning, correcting or verifying Orca workers, deciding /goal use and release scope, or cleaning up merged tasks' workers and worktrees, or ending a loop with every branch merged and only main left; when you are an Orca worker, meaning you were explicitly assigned work as a worker or run in an Orca Task or Dispatch context such as a preamble with a Task ID; when a goal starts and Roy must be asked which model the workers use; when Roy corrects how Roy's Loop operates or live sessions must reload an updated skill; or when work involves PR-scoped code changes, the coordinator's /code-review and its findings, visual E2E checks, merging included PRs, or deployment scope. Also use on "Roy's Loop", "로이 루프" or "로이의 루프".
+description: Roy's Loop role rules for PMs (dot, Hermes, grokbot), the Orca floating coordinator (one per project), and Orca workers. Use when you are a PM reporting loop status (running, stopped, blockers) or relaying Roy's goal or a GitHub or Tralalero request to a project's coordinator; when you are an Orca coordinator breaking work down, splitting several issues across parallel workers, assigning, correcting or verifying Orca workers, deciding /goal use and release scope, or cleaning up merged tasks' workers and worktrees, tracking what is open, or ending a loop with only main left; when you are an Orca worker, meaning you were explicitly assigned work as a worker or run in an Orca Task or Dispatch context such as a preamble with a Task ID; when a goal starts and Roy must be asked which model the workers use; when Roy corrects how Roy's Loop operates or live sessions must reload an updated skill; or when work involves PR-scoped code changes, the coordinator's /code-review and its findings, visual E2E checks, merging included PRs, or deployment scope. Also use on "Roy's Loop", "로이 루프" or "로이의 루프".
 ---
 
 # Roy's Loop
@@ -190,10 +190,42 @@ work. Do not create a loop, a coordinator or workers for it.
     - Last step before the final report: `git fetch --prune`, then show that
       `main` is checked out and equal to `origin/main`, and that `git worktree
       list`, `git branch -a`, `gh pr list --state open` and the Orca worktree and
-      worker lists hold nothing of this loop. Put that output in the report.
+      worker lists hold nothing of this loop, and that no shell or background job
+      this loop started is still running. Put that output in the report.
     - Work in the project that is not this loop's (another owner or a live
       session) is not yours to merge or remove. List it in the final report with
       its owner.
+11. **Track what is open, and take in every ending.** Roy: tracking is very
+    important; without it the loop never closes and only burns tokens. At every
+    turn the coordinator knows what this loop still has open and what will close
+    each item.
+    - Record each item when you open it: every task, worker, worktree, branch,
+      PR, temporary clone and background shell or job, with its owner and the
+      event that closes it. Use the records you already have: Orca's task and
+      worker lists, and the task's report for what Orca does not list (a review
+      clone, a background command in your own session). Add no separate ledger.
+    - Take in every ending in the turn it reaches you: a `worker_done`, a worker
+      that stopped without one (an `escalation` with a `stopReason`), a worker
+      that is `exited` or `lost`, and the exit of any shell or background job you
+      started. Read its result, update the task's status, and take the step it
+      unblocks: verify and review, route the fix, retry, merge, clean up, or ask
+      Roy. An ending you did not record is an item you still think is running.
+    - A merge closes its items in the same turn: the worktree, the local and
+      remote branch, the clones and the worker (see the Coordinator's post-merge
+      cleanup). Mark each one closed as it goes.
+    - Before you end a turn to wait, every open item needs a live owner whose
+      ending will wake you: a working worker, a running CI check, a running
+      background job or a question to Roy. If an item has none, act on it now or
+      ask Roy. Never wait on a sender that has already ended.
+    - At each event, compare your records with the real state (`orca
+      orchestration worker-list`, `orca worktree ps`, `git worktree list`, `gh pr
+      list`) and fix each difference then. This is a check at an event, not
+      polling. Silence, a timeout or unverifiable liveness does not prove that a
+      worker ended: follow Orca's recovery guide and ask Roy rather than presume
+      it dead and remove it.
+    - When nothing is open and rule 10's check passes, the loop is over: send the
+      final report and stop. Leave no worker, timer, background job or active
+      `/goal` behind it.
 
 ## PM (dot, Hermes, grokbot)
 
@@ -248,7 +280,9 @@ authority and the PM stays out of its way.
   before its third review round: if findings keep coming, ask Roy rather than
   open another round or another worktree.
 - Keep your state readable without being asked: keep Orca task status current
-  and write each task's report where Roy and PMs can read it.
+  and write each task's report where Roy and PMs can read it. These are also
+  rule 11's records of what is open: update them at each opening and each
+  ending, not in one batch at the end.
 - Break the goal into tasks and give each one to a suitable Orca worker. Use the
   Orca `orchestration` skill (`orca skills get orchestration`) for the
   version-matched commands. If a worker already owns a task, send it the
@@ -309,9 +343,10 @@ authority and the PM stays out of its way.
   passed and been verified, carry it out without a user reminder. Release-scope
   and approval gates still apply. While a long gate runs, prepare the next
   authorized step in parallel so it can start when the gate passes.
-- Supervise through existing events, including Orca messages, worker reports and
-  CI results read at event boundaries. Do not use watchers, polling loops, daemons
-  or new services.
+- Supervise through existing events, read at event boundaries: Orca messages,
+  worker reports and endings, the exit of a shell or background job you started,
+  and CI results. Each one updates your records (rule 11). Do not use watchers,
+  polling loops, daemons or new services.
 - Correct direction by sending the fix to the worker that owns the task. Do not
   redo the task yourself.
 - Put rule 3's full sequence in every code task's spec: PR and revalidation by the
@@ -326,10 +361,12 @@ authority and the PM stays out of its way.
 - Report to Roy per task: the outcome, the evidence, PRs and their review status,
   and blockers. When Roy works through a PM, that PM reads and relays this
   report; you owe a PM no separate report.
-- **Clean up promptly after a merge.** Once a task's PR is merged and its assigned
-  work and handoffs are actually finished, retire that task's completed worker
-  session and its temporary worktree and branch without delay. Open ones cost
-  memory and management load.
+- **Clean up in the same turn as the merge.** Merging and cleaning up are one
+  step, not two. Once a task's PR is merged and its assigned work and handoffs
+  are actually finished, retire that task's completed worker session and its
+  temporary worktree and branch in that turn, and mark them closed in your
+  records (rule 11). Open ones cost memory and management load, and keep the
+  loop from closing.
   - First verify:
     - the actual PR merge and its content on main, including squash merges;
     - settled ownership, with no running tests, builds, deploys or other
@@ -377,5 +414,9 @@ authority and the PM stays out of its way.
   says to.
 - Create no worktree, clone or branch beyond your task's. Remove any scratch copy
   you made before you report.
+- Never stop without a report. Your job ends only with completed, failed or
+  blocked, because the coordinator can only track an ending it receives (rule
+  11). Before you report, stop the shells and background commands you started,
+  unless the task says to leave one running; name any you left.
 - Do not run code reviews as a worker (`/review`, `/code-review`, `codex review`
   or any other reviewer), even when your tool has them. The coordinator reviews.

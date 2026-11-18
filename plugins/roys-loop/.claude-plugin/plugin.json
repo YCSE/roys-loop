@@ -1,7 +1,7 @@
 {
   "name": "roys-loop",
   "displayName": "Roy's Loop",
-  "version": "0.13.0",
+  "version": "0.14.0",
   "license": "MIT",
   "description": "Role rules for Roy's PMs (dot, Hermes, grokbot; status reports only), the Orca floating coordinator (one per project) and Orca workers: routing, ownership, PR review and release scope. Content only.",
   "author": {

@@ -3,7 +3,7 @@
 Role rules for running software work through agents:
 
 - **PMs** report the loop's state (running, stopped, blockers) and relay requests. They do not steer.
-- **One Orca floating coordinator per project** owns the loop: it breaks work down, starts workers, reviews each PR with `/code-review`, and decides merges and release scope. A loop ends only when every branch is merged and just `main` is left.
+- **One Orca floating coordinator per project** owns the loop: it breaks work down, starts workers, reviews each PR with `/code-review`, and decides merges and release scope. It tracks every worker, worktree, branch and shell the loop opens and takes in each ending as it arrives, so a loop ends only when every branch is merged and just `main` is left.
 - **Orca workers** open PRs, revalidate, fix the coordinator's verified findings and run the visual E2E. They run no reviews.
 
 It is a set of rules, not a process. It adds no scheduler, polling or daemon, and loading it changes nothing by itself. The rules are in [`plugins/roys-loop/skills/roys-loop/SKILL.md`](plugins/roys-loop/skills/roys-loop/SKILL.md), and the review procedure is in [`references/review.md`](plugins/roys-loop/skills/roys-loop/references/review.md).
