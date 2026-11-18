@@ -37,9 +37,12 @@ codex plugin add roys-loop@roys-loop
 
 ### OpenCode
 
+OpenCode reads skills from a real folder, so keep a clone and copy the skill out of it:
+
 ```sh
 git clone https://github.com/YCSE/roys-loop ~/.local/share/roys-loop
-ln -s ~/.local/share/roys-loop/plugins/roys-loop/skills/roys-loop ~/.config/opencode/skills/roys-loop
+mkdir -p ~/.config/opencode/skills
+rsync -a --delete ~/.local/share/roys-loop/plugins/roys-loop/skills/roys-loop/ ~/.config/opencode/skills/roys-loop/
 ```
 
 ## Update
@@ -50,7 +53,7 @@ After a new version is pushed:
 | --- | --- |
 | Claude Code | `claude plugin marketplace update roys-loop` then `claude plugin update roys-loop@roys-loop --scope user` (or let auto-update do it) |
 | Codex | `codex plugin marketplace upgrade roys-loop` then `codex plugin add roys-loop@roys-loop` |
-| OpenCode | `git -C ~/.local/share/roys-loop pull` |
+| OpenCode | `git -C ~/.local/share/roys-loop pull`, then the `rsync` line above |
 
 Running sessions keep the old text until they reload. In Claude Code, run `/reload-plugins`.
 

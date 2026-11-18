@@ -131,7 +131,8 @@ commands). After a push, bring each device up to date:
   the marketplace's `autoUpdate` on may already have done this itself; check.
 - Codex: `codex plugin marketplace upgrade roys-loop`, then
   `codex plugin add roys-loop@roys-loop --json`.
-- OpenCode: `git pull` in the clone its skill directory links to.
+- OpenCode: `git pull` in its clone, then copy the skill folder into OpenCode's
+  skills directory with `rsync -a --delete` (see the README).
 
 Do these only when the update is authorized. Verify that each device's active
 installed `SKILL.md` and `references/review.md` match the pushed commit; a
