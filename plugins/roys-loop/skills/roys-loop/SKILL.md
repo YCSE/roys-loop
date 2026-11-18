@@ -14,8 +14,7 @@ merges, deploys or changes anything by itself.
 
 - **PM (dot, Hermes, grokbot)**: you report the loop's state to Roy (the user):
   what is running, what has stopped, and the blockers. You may relay Roy's goals
-  and new GitHub/Tralalero requests to a project's coordinator. You do not steer
-  the work.
+  and new GitHub/Tralalero requests to a project's coordinator.
 - **Coordinator**: you are the Orca floating coordinator for one project. You
   get goals from Roy, directly or relayed by a PM, and run them through Orca
   workers. By default you hold more authority than a PM.
@@ -41,22 +40,23 @@ work. Do not create a loop, a coordinator or workers for it.
 2. **Keep existing ownership.** Before you start new work or a new worker, check
    whether a worker, session or PR already owns it. If one does, continue or steer
    that one. Never duplicate a worker or its work.
-3. **Every code change is PR-scoped.** The worker opens the PR, revalidates it
-   and reports the PR and its head. Workers do not run code reviews; the
-   coordinator does. The coordinator reviews the PR's actual current head with
+3. **Every code change is PR-scoped.** The worker opens the PR, revalidates it,
+   waits for CI on that head to finish and reports the PR, the head and the CI
+   result. It does the same for every later head of that PR. The coordinator,
+   never a worker, reviews the PR's actual current head with
    `/code-review <PR number>` (see Coordinator), verifies the findings, routes
    verified findings back to the owner, and reviews the updated head again.
    Repeat until no verified findings remain. Then run an E2E with actual visual
    inspection of the affected flows on the final head.
    - Screenshots alone, unit tests alone, or a build or APK alone are not a
-     completed visual E2E.
-   - If the visual E2E cannot be performed, report the exact blocker and never mark
-     it passed.
-   - Any code change after review invalidates that review. The coordinator
-     reviews the new head again: a delta review for a fix round, a full
-     `/code-review` for new behavior, a redesign or a large new diff (see
-     Coordinator). Address verified findings and revalidate. Any later code
-     change also requires re-running the affected visual E2E.
+     completed visual E2E. If it cannot be performed, report the exact blocker
+     and never mark it passed.
+   - A code change after review invalidates that review and the affected visual
+     E2E. The coordinator reviews the new head: for a fix round a delta review
+     (rerun each verified finding's command and review the diff since the
+     reviewed head; record it as a delta review, never as a full
+     `/code-review`), for new behavior, a redesign or a large new diff a full
+     `/code-review` again.
    - A head that changed only because main moved (main merged into the branch, or
      a rebase onto main) keeps its review and visual E2E when the PR's own patch
      is identical at both heads. Only CI runs again, on the exact new head. Prove
@@ -79,21 +79,12 @@ work. Do not create a loop, a coordinator or workers for it.
    PRs are in this deployment; Roy can set or change that scope, and a PM cannot.
    Deciding scope is not approval to deploy: a deploy or store submission still
    needs the authorization that Roy's goal and the project's own approval gates
-   give. Merge every included PR that has been reviewed and verified, then
-   validate the integrated main. Before you deploy, clean up each PR included in
-   this release, and only after both of these checks:
-   - The PR is actually merged into main. Check the real PR merge state and its
-     content on main, not only Git ancestry, because a squash merge is not an
-     ancestor.
-   - Its worktree is clean and has no live owner.
-
-   Then remove that PR's temporary branch and worktree, so that the included work
-   remains only on main. Keep excluded PRs intact until the deploy is done; rule
-   10 then closes them out. Keep any uncommitted, untracked, unmerged or
-   live-owned work intact while you clean up; rule 10 says how the loop still
-   ends with only main. Never apply this cleanup to unrelated repositories or
-   work. Merged tasks are also cleaned up promptly, not
-   only at release time; see the Coordinator's post-merge cleanup.
+   give. Merge every included PR that has been reviewed and verified and clean
+   each one up as it merges (see the Coordinator's cleanup), so that before you
+   deploy the included work remains only on main. Then validate the integrated
+   main; if that waits on CI, a worker brings the result back (rule 11). Keep
+   excluded PRs intact until the deploy is done; rule 10 then closes them out.
+   Never apply this cleanup to unrelated repositories or work.
 6. **Fix root causes for the original purpose.** Do not hide or avoid a problem
    behind a "minimal change" rationale.
 7. **Intent and permissions persist.** Do not turn every report into an approval
@@ -112,8 +103,8 @@ work. Do not create a loop, a coordinator or workers for it.
    - Routine coordination within existing authority must not become an
      organization-wide blocker waiting on a user decision.
    - Route permission or account changes, high-risk user steps, and release or
-     deploy decisions beyond Roy's goal to Roy. Release scope within the goal is
-     the coordinator's (rule 5). Never waive required review, visual E2E or CI.
+     deploy decisions beyond Roy's goal to Roy. Never waive required review,
+     visual E2E or CI.
    - Classify each blocker as a tool defect, resource conflict or product defect;
      keep diagnosing, fixing and verifying within the existing root-cause scope.
    - Never expose secrets in messages, reports, files, logs or screenshots. Never
@@ -125,8 +116,7 @@ work. Do not create a loop, a coordinator or workers for it.
    repository `YCSE/roys-loop` and the installed skills (see the review guide's
    "Installation, updates and reload evidence"). The worker
    then verifies that source and installed copies are identical and that a fresh
-   session loads the change, and reports. A verbal promise is not an update. Do not
-   use automatic watchers or services for this.
+   session loads the change, and reports. A verbal promise is not an update.
    - After the final update, the coordinator has each live coordinator and worker
      session that has this skill loaded run its platform's supported reload
      command. Do it at a safe turn boundary, without interrupting or restarting the
@@ -176,14 +166,12 @@ work. Do not create a loop, a coordinator or workers for it.
     or stop, while any branch, worktree, PR, temporary clone or worker of this
     loop is still open. Roy sees this go wrong all the time: verification spreads
     into worktrees that are never wrapped up.
-    - Finish every branch: merge it into main through rule 3's gates, then remove
-      its worktree, local and remote branch, temporary clones and worker (see the
-      Coordinator's post-merge cleanup). Excluded PRs from rule 5 merge too once
-      the deploy is done; if merging to main itself deploys in this project, ask
-      Roy first.
+    - Finish every branch: merge it into main through rule 3's gates and clean it
+      up in the same turn (see the Coordinator's cleanup). Excluded PRs from rule
+      5 merge too once the deploy is done; if merging to main itself deploys in
+      this project, ask Roy first.
     - Uncommitted or untracked work in a loop worktree belongs to its PR: commit
-      it there, or ask Roy before discarding it. Never drop or apply a stash to
-      make a target look clean.
+      it there, or ask Roy before discarding it.
     - A branch that cannot pass its gates does not stay open waiting. Ask Roy with
       the question dialog: merge with the remaining findings written down, one
       more fix round, or close it. Then do what he chose.
@@ -210,13 +198,16 @@ work. Do not create a loop, a coordinator or workers for it.
       started. Read its result, update the task's status, and take the step it
       unblocks: verify and review, route the fix, retry, merge, clean up, or ask
       Roy. An ending you did not record is an item you still think is running.
-    - A merge closes its items in the same turn: the worktree, the local and
-      remote branch, the clones and the worker (see the Coordinator's post-merge
-      cleanup). Mark each one closed as it goes.
-    - Before you end a turn to wait, every open item needs a live owner whose
-      ending will wake you: a working worker, a running CI check, a running
-      background job or a question to Roy. If an item has none, act on it now or
-      ask Roy. Never wait on a sender that has already ended.
+    - Before you end a turn to wait, every open item needs a live sender whose
+      report or exit will wake you: a working worker, a background job of your
+      own or a question to Roy. If an item has none, act on it now or ask Roy.
+    - CI is not such a sender: sometimes it wakes the coordinator and sometimes
+      it does not. Roy: when no worker brings the CI result back, the
+      coordinator waits forever, and that is where worktrees pile up and never
+      get cleaned up. So every CI run the loop waits on has a worker that brings
+      its result back: the owning worker for each head of a PR (rule 3), and a
+      worker you assign for any other run, such as main's after a merge. Take in
+      a CI result that does reach you by itself, but never count on one.
     - At each event, compare your records with the real state (`orca
       orchestration worker-list`, `orca worktree ps`, `git worktree list`, `gh pr
       list`) and fix each difference then. This is a check at an event, not
@@ -239,14 +230,12 @@ authority and the PM stays out of its way.
   not grade or re-verify them.
 - **Read state without interrupting.** Check when Roy asks, or when a report or
   event reaches you. Use read-only records: Orca run, task and worker lists, the
-  coordinator's reports, GitHub PR and CI state, Tralalero cards. Add no
-  watchers or polling. If the records cannot tell, report the state as unknown
-  and say what you checked. Ask a coordinator a status question only when Roy
-  tells you to, and ask it once.
+  coordinator's reports, GitHub PR and CI state, Tralalero cards. If the records
+  cannot tell, report the state as unknown and say what you checked. Ask a
+  coordinator a status question only when Roy tells you to, and ask it once.
 - **Report new requests.** When you find a new GitHub or Tralalero request,
   report it to Roy (the project, the link and its impact) and pass the link to
-  that project's coordinator. This is a report, not an approval request, and it
-  carries no direction of yours.
+  that project's coordinator. This is a report, not an approval request.
 - **Relay without adding.** You may pass Roy's goal, corrections and answers to
   the project's coordinator, and a coordinator's question for Roy to Roy. Quote
   Roy's words verbatim and mark them as his (`Roy: "…"`). Add no constraints,
@@ -275,22 +264,19 @@ authority and the PM stays out of its way.
   check on an unchanged head, or gather extra evidence because someone other
   than Roy asked.
 - **Keep the loop closable (rule 10).** Open only the worktrees, clones and
-  workers you can close before the loop ends. Remove a verification worktree or
-  clone as soon as its check is recorded, not at the end. Decide each PR's exit
-  before its third review round: if findings keep coming, ask Roy rather than
-  open another round or another worktree.
-- Keep your state readable without being asked: keep Orca task status current
-  and write each task's report where Roy and PMs can read it. These are also
-  rule 11's records of what is open: update them at each opening and each
-  ending, not in one batch at the end.
-- Break the goal into tasks and give each one to a suitable Orca worker. Use the
-  Orca `orchestration` skill (`orca skills get orchestration`) for the
-  version-matched commands. If a worker already owns a task, send it the
-  follow-up instead of starting a new worker.
-- Start each worker with the model rule 9 settles: Roy's answer, or the newest
-  Claude Opus once 5 minutes pass without one. Set no reasoning effort unless Roy
-  names one. Continue existing owners rather than replacing them, and do not
-  change the coordinator model or global defaults.
+  workers you can close before the loop ends. Remove a verification or review
+  worktree or clone as soon as its check is recorded, not at the end: first move
+  the repros that the report cites into the report's folder, and keep the
+  report. Decide each PR's exit before its third review round: if findings keep
+  coming, ask Roy rather than open another round or another worktree.
+- Keep your state readable without being asked: update Orca task status and
+  each task's report, where Roy and PMs can read them, at each opening and each
+  ending (rule 11), not in one batch at the end.
+- Break the goal into tasks and give each one to a suitable Orca worker, or to
+  the worker that already owns it (rule 2). Use the Orca `orchestration` skill
+  (`orca skills get orchestration`) for the version-matched commands.
+- Start each worker with the model rule 9 settles. Do not change the
+  coordinator model or global defaults.
 - **Review each code PR yourself with `/code-review`.** Read
   [the review guide](references/review.md) for the invocation, evidence,
   later-head, model and platform details. After the worker reports the PR and its
@@ -298,11 +284,7 @@ authority and the PM stays out of its way.
   `/code-review <PR number>` on it. That is the built-in command with effort
   levels, not the `code-review:code-review` plugin skill. Record the reviewed head,
   the level it ran at, verified findings, repro evidence, dropped findings and any
-  limits. Route fixes to the owning Orca worker and review the new head again
-  before visual E2E. For a fix round that is a delta review: rerun each verified
-  finding's command and review the diff since the reviewed head, and record it as
-  a delta review, not as a full `/code-review`. New behavior, a redesign or a
-  large new diff gets a full `/code-review` again.
+  limits.
   - Do not pass `--fix`: the review reports findings and the owning worker fixes
     them. Do not pass `--comment` unless the task asks for PR comments. Do not use
     the `max` or `ultra` level unless Roy asks for it; `ultra` is a separately
@@ -315,11 +297,8 @@ authority and the PM stays out of its way.
     the configured default subagent model, which may differ from the session
     model. Report actual models only when observable. It may incur additional
     model usage.
-  - Reviewing is the coordinator's job. Never put a review step in a worker's
-    task.
-  - If `/code-review` is not available in your tool, or the review cannot run on
-    the exact PR head, report the exact blocker. Do not substitute a different
-    reviewer and present it as `/code-review`, silently relax an explicit model
+  - If the review cannot run on the exact PR head, report the exact blocker
+    (rule 3 covers a missing command). Do not silently relax an explicit model
     restriction, change global model settings, or claim the review passed.
 - **Split independent work across parallel workers.**
   - When a goal spans several issues or independent tasks, run them on multiple
@@ -335,40 +314,35 @@ authority and the PM stays out of its way.
   - Resolve routine slots and safe pauses/resumes of owned sessions within existing authority (rule 7).
   - Coordinate dependencies and integration, and verify the integrated result.
 - A handoff is not completion: the role handing off remains responsible until
-  the verified outcome is reported. Consume results, evidence and questions
-  promptly at the event; verify them, then answer, grant the next authorized step
-  within your authority, or route the fix.
-  Never leave an authorized next step waiting for a user reminder.
-- Once every required gate for an already-authorized merge, deploy or release has
-  passed and been verified, carry it out without a user reminder. Release-scope
-  and approval gates still apply. While a long gate runs, prepare the next
-  authorized step in parallel so it can start when the gate passes.
-- Supervise through existing events, read at event boundaries: Orca messages,
-  worker reports and endings, the exit of a shell or background job you started,
-  and CI results. Each one updates your records (rule 11). Do not use watchers,
-  polling loops, daemons or new services.
-- Correct direction by sending the fix to the worker that owns the task. Do not
-  redo the task yourself.
-- Put rule 3's full sequence in every code task's spec: PR and revalidation by the
-  worker with no worker-run review, the coordinator's `/code-review` with fixes and
-  re-review, then the visual E2E on the final head. Each task spec also names the
-  evidence that proves the task done, the paths the worker may write and the
-  actions it must not take. Before you report a pass,
-  verify the final tested HEAD and the visual E2E evidence. An unperformed visual
-  E2E is a blocker, not a pass.
-- Verify each result yourself before you report it: evidence, review status and
-  checks. A `worker_done` is a claim, not proof.
+  the verified outcome is reported. At each event verify what arrived, then
+  answer, grant the next authorized step within your authority, or send the fix
+  to the worker that owns the task; do not redo the task yourself. Never leave
+  an authorized next step waiting for a user reminder: once every required gate
+  for an already-authorized merge, deploy or release has passed and been
+  verified, carry it out. Release-scope and approval gates still apply. While a
+  long gate runs, prepare the next authorized step in parallel so it can start
+  when the gate passes.
+- Supervise through existing events, read at event boundaries: Orca messages
+  and the endings rule 11 lists. Do not use watchers, polling loops, daemons or
+  new services.
+- Every code task's spec carries rule 3's sequence with no review step for the
+  worker, the evidence that proves the task done, the paths the worker may write
+  and the actions it must not take.
+- Verify each result yourself before you report it: evidence, review status,
+  checks, the final tested HEAD and the visual E2E evidence. A `worker_done` is
+  a claim, not proof.
 - Report to Roy per task: the outcome, the evidence, PRs and their review status,
   and blockers. When Roy works through a PM, that PM reads and relays this
   report; you owe a PM no separate report.
 - **Clean up in the same turn as the merge.** Merging and cleaning up are one
   step, not two. Once a task's PR is merged and its assigned work and handoffs
-  are actually finished, retire that task's completed worker session and its
-  temporary worktree and branch in that turn, and mark them closed in your
-  records (rule 11). Open ones cost memory and management load, and keep the
-  loop from closing.
+  are actually finished, retire that task's completed worker session and remove
+  its temporary worktree, branch (local and remote) and clones in that turn, and
+  mark them closed in your records (rule 11). Open ones cost memory and
+  management load, and keep the loop from closing.
   - First verify:
-    - the actual PR merge and its content on main, including squash merges;
+    - the PR's real merge state and its content on main, not only Git ancestry,
+      because a squash merge is not an ancestor;
     - settled ownership, with no running tests, builds, deploys or other
       consumers;
     - any valuable uncommitted, untracked or ignored data, relevant stashes,
@@ -386,37 +360,39 @@ authority and the PM stays out of its way.
     a dirty, live or uncertain target.
   - Record the exact reason for any target you keep, and clean it up once that
     dependency ends.
-  - The clones and worktrees that your reviews created are yours to clean
-    up too, once the PR is merged or closed. First move the repros that the
-    review report cites into the report's folder, and keep the report.
-  - This extends rule 5's release cleanup; it does not weaken it.
 
 ## Worker
 
 - Do only the assigned purpose. Validate it, then report evidence and blockers
   to the coordinator using the commands in your preamble.
-- Report only the exact blocked step and keep independent assigned work going (rule 7).
-- Report the real state of the work:
+- Report the real state of the work, and never stop without a report: the
+  coordinator can only track an ending it receives (rule 11).
   - With a question, ask the coordinator, and keep waiting for the answer
     instead of finishing.
-  - When blocked, report blocked with the exact blocker.
-  - Report completed or failed only when that is the actual outcome.
-
-  Never mark waiting, question or blocked work as failed, and never promote it to
-  completed.
-- For code: open the PR, revalidate it and report the PR, its head and the
-  validation evidence to the coordinator, who reviews it. Fix the coordinator's
-  verified findings and revalidate as directed; after the coordinator re-reviews
-  the final head, run the visual E2E. Report the PR number, the validation you
-  ran, final tested HEAD, E2E flows and visual evidence. If validation or the
-  visual E2E is blocked, report blocked with the exact reason.
+  - When blocked, report blocked with the exact step, and keep independent
+    assigned work going (rule 7).
+  - Report completed or failed only when that is the actual outcome. Never mark
+    waiting, question or blocked work as failed, and never promote it to
+    completed.
+- For code: open the PR, revalidate it, wait for CI on that head to finish, and
+  report the PR, its head, the CI result and the validation evidence to the
+  coordinator. Fix the coordinator's verified findings, revalidate and report
+  each new head the same way; after the coordinator re-reviews the final head,
+  run the visual E2E. Report the PR number, the validation you ran, final tested
+  HEAD, E2E flows and visual evidence. If validation or the visual E2E is
+  blocked, report blocked with the exact reason.
+  - Wait for CI in one blocking command, for example
+    `gh pr checks <PR number> --watch`, not in a polling loop of your own. If
+    your tool cuts the command off before CI ends, run it again: that is the
+    same wait, not polling. If it shows no checks right after a push, they may
+    not have registered yet: run it again before you report that the PR has no
+    CI.
+  - CI that cannot finish (stuck, queued or waiting for approval) is a blocked
+    report with its exact state. Do not wait on it forever.
 - Do not start other workers, duplicate work, merge or deploy unless your task
   says to.
-- Create no worktree, clone or branch beyond your task's. Remove any scratch copy
-  you made before you report.
-- Never stop without a report. Your job ends only with completed, failed or
-  blocked, because the coordinator can only track an ending it receives (rule
-  11). Before you report, stop the shells and background commands you started,
-  unless the task says to leave one running; name any you left.
+- Create no worktree, clone or branch beyond your task's. Before you report,
+  remove any scratch copy you made and stop the shells and background commands
+  you started, unless the task says to leave one running; name any you left.
 - Do not run code reviews as a worker (`/review`, `/code-review`, `codex review`
-  or any other reviewer), even when your tool has them. The coordinator reviews.
+  or any other reviewer), even when your tool has them.

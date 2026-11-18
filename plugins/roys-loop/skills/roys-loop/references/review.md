@@ -12,8 +12,8 @@ Since 0.8.0 (2026-11-19) the coordinator's review is Claude Code's built-in
 
 ## From worker result to final head
 
-1. The owning Orca worker opens the PR, revalidates it and reports the PR, its
-   head and the validation evidence. The worker does not review it.
+1. The owning Orca worker opens the PR, revalidates it, waits for CI on that
+   head and reports the PR, its head, the CI result and the validation evidence.
 2. The coordinator identifies the PR's current commit, intended behavior and
    base: `gh pr view <PR number> --json headRefOid,baseRefName`. Review the PR
    diff from its base/merge-base to that exact head, and exclude unrelated dirty
@@ -26,26 +26,21 @@ Since 0.8.0 (2026-11-19) the coordinator's review is Claude Code's built-in
    plugin skill. From inside another skill, invoke it through the `Skill` tool
    with the PR number as its argument; follow the tool's actual schema and do
    not invent flags.
-   - No `--fix`: the coordinator does not fix code, the owning worker does.
-   - No `--comment` unless the task asks for PR comments.
-   - No `max` or `ultra` unless Roy asks for it. `ultra` is a separately billed
-     cloud review that the user triggers.
+   - Flags and levels stay within SKILL.md's Coordinator limits: no `--fix`, no
+     `--comment` unless the task asks, no `max` or `ultra` unless Roy asks.
    - Record the level the review reports it ran at.
    - Read the PR head again after the review. If it moved while the review ran,
      the review covers the old head only.
 4. Verify each finding before you route it. Read the cited code at the reviewed
    head and reproduce the failure with a run where you can. Keep verified
    failures that break the intended behavior, merge findings with the same root
-   cause, and record dropped findings with the reason. `/code-review` reports
-   findings and does not fix them without `--fix`. No verified findings is a
-   valid result, but it is not proof that no other defects exist.
+   cause, and record dropped findings with the reason.
 5. Route verified findings to the existing owning Orca worker, who fixes and
-   revalidates them. Review the new PR head again as "Later heads" describes;
-   repeat until no verified findings remain. Then run actual visual E2E on the
-   affected flows. A code change after review invalidates that review and
-   requires another review of the new head and the affected visual E2E. Before a
-   final pass or authorized merge, apply the head check in "Later heads". Keep
-   the project's other required checks and release gates.
+   revalidates them and reports the new head with its CI result. Review that
+   head as "Later heads" describes; repeat until no verified findings remain.
+   Then run actual visual E2E on the affected flows. Before a final pass or
+   authorized merge, apply the head check in "Later heads". Keep the
+   project's other required checks and release gates.
 
 Record the PR and full reviewed head, scope and intent, the exact invocation and
 level, observable reviewer model details, verified repro commands and outcomes,
@@ -90,27 +85,21 @@ later head before you review it.
   `gh pr merge <PR number> --match-head-commit <that head>`, which refuses a head
   that moved in the meantime.
 
-Review clones and worktrees are the coordinator's scratch. Once the PR is merged
-or closed, move the repros that the report cites into the report's folder, then
-remove the scratch under the Coordinator's cleanup checks. Keep the report.
+Review clones and worktrees are the coordinator's scratch. As soon as the
+review's findings are recorded, move the repros that the report cites into the
+report's folder, then remove the scratch once nothing still uses it and nothing
+unsaved is left in it. Keep the report.
 
 ## Model and platform boundaries
 
-- Worker models follow SKILL.md rule 9: ask Roy with the question dialog as the
-  first step of a goal, with the newest Claude Opus as the default (taken
-  automatically after 5 minutes only for a question relayed through a PM). Set no reasoning effort
-  for a worker unless Roy names one. Preserve existing owners and the coordinator
-  model. Do not change global defaults.
-- `/code-review` runs reviewer subagents. These are Claude subagents, separate
-  from Orca workers. A subagent started without a model runs on the configured
-  default subagent model, which may differ from the session model.
-  Report actual models only when observable, and do not claim a model was used
-  otherwise. Additional subagents can incur model usage.
+- Worker models follow SKILL.md rule 9. Preserve existing owners and the
+  coordinator model. Do not change global defaults.
+- `/code-review`'s reviewers are Claude subagents on the configured default
+  subagent model (see SKILL.md's Coordinator section). Do not claim a model was
+  used unless it is observable.
 - `/code-review` is a Claude Code command. A coordinator in a tool without it
   (Codex, OpenCode) reports the blocker. Do not run that tool's own reviewer,
   such as Codex `/review` or `codex review`, and present it as `/code-review`.
-- Workers do not run any reviewer, even when their tool has one, so keep review
-  steps out of worker task specs.
 
 ## Installation, updates and reload evidence
 
@@ -140,9 +129,7 @@ installed `SKILL.md` and `references/review.md` match the pushed commit; a
 command's success message alone is not verification. Respect a denied update
 and report it rather than replacing the cache to evade the denial.
 
-Existing sessions do not automatically prove they picked up updated instructions.
-At a safe turn boundary use the platform's supported reload if available. In
-Claude Code use `/reload-plugins`, record its own acknowledgment and verify the
-changed skill text in that session. Do not interrupt an active session. If the
-platform has no supported native reload or access is denied, report the exact
-session and blocker; a new session or reading a file is not a claimed live reload.
+Then reload each live session and keep the evidence as SKILL.md rule 8 says. A
+new session or reading a file is not a claimed live reload. If the platform has
+no supported native reload or access is denied, report the exact session and
+blocker.
