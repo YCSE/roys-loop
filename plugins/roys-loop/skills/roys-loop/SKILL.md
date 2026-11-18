@@ -140,24 +140,30 @@ work. Do not create a loop, a coordinator or workers for it.
    - A skill cannot reload a running session by itself.
 9. **Ask Roy for the worker model when a goal starts.** This skill fixes no
    worker model.
-   - The coordinator asks Roy which model the workers should use, in its first
-     message about the goal. When the goal came through a PM, the PM passes the
-     question to Roy and his answer back unchanged. Skip the question when Roy
-     already named a worker model for this goal. Ask in a plain message that does
-     not block the work, say what the default is and the time it applies, and
-     note the time you asked.
-   - If Roy has not answered 5 minutes after the question, use the newest Claude
-     Opus: the latest Opus the worker's tool offers when the worker starts. On
-     2026-11-19 that is Claude Opus 5.5 (`claude-opus-5-5`); check the current
-     model list rather than assuming it is still the newest. Through Orca that is
-     `--agent claude --model <that id>`.
+   - The coordinator asks once, as its very first step on the goal, before it
+     reads or runs anything else. One question at the start does not get in the
+     work's way, so it may block. Skip it when Roy already named a worker model
+     for this goal.
+   - When Roy gives the goal in your own session, ask with the tool's question
+     dialog (in Claude Code, `AskUserQuestion`), never as a line of text between
+     tool calls. Put the newest Claude Opus first, labeled as the default, add the
+     other agents and models the worker host offers (for example Codex), and let
+     Roy type his own. The dialog waits for his answer: Claude Code's has no
+     timeout, so start no worker until he answers.
+   - The newest Claude Opus is the latest Opus the worker's tool offers when the
+     worker starts. On 2026-11-19 that is Claude Opus 5.5 (`claude-opus-5-5`);
+     check the current model list rather than assuming it is still the newest.
+     Through Orca that is `--agent claude --model <that id>`.
+   - When the goal came through a PM, Roy is not at your session. The PM passes
+     the question to Roy and his answer back unchanged. Ask in that message, say
+     the default and the time it applies, and note the time. If Roy has not
+     answered 5 minutes later, use the newest Claude Opus. Meanwhile break the
+     goal down and check owners, but start no worker. If you are ready sooner,
+     wait out the remaining time with one one-shot timer (in Claude Code, a
+     single background `sleep`), never a polling loop. This wait is the only
+     timer Roy's Loop uses.
    - Pass exactly what Roy names: the agent, the model, and an effort only if he
-     names one. With the 5-minute default, pass no `--effort`.
-   - The question does not block preparation: break the goal down and check
-     owners meanwhile. Start no worker before Roy answers or the 5 minutes pass.
-     If you are ready sooner, wait out the remaining time with one one-shot timer
-     (in Claude Code, a single background `sleep`), never a polling loop. This
-     wait is the only timer Roy's Loop uses.
+     names one. With the default, pass no `--effort`.
    - A late answer applies to workers started after it arrives. Do not replace
      running workers for it unless Roy says so.
    - Record the model each worker started with, and whether it came from Roy's

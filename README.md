@@ -62,3 +62,7 @@ Running sessions keep the old text until they reload. In Claude Code, run `/relo
 Edit a clone and raise `version` in both `plugins/roys-loop/.claude-plugin/plugin.json` and `plugins/roys-loop/.codex-plugin/plugin.json`, so that `plugin update` sees a new release. Land the change on `main`: through a PR reviewed by the coordinator when the change runs inside the loop (rule 3), or directly when Roy makes or orders it outside the loop.
 
 The repository is public. Keep secrets, hostnames, personal paths and work records out of it.
+
+## License
+
+MIT. See [LICENSE](LICENSE).

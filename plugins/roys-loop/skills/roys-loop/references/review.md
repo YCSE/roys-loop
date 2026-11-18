@@ -96,8 +96,9 @@ remove the scratch under the Coordinator's cleanup checks. Keep the report.
 
 ## Model and platform boundaries
 
-- Worker models follow SKILL.md rule 9: ask Roy when the goal starts, and use the
-  newest Claude Opus if he has not answered in 5 minutes. Set no reasoning effort
+- Worker models follow SKILL.md rule 9: ask Roy with the question dialog as the
+  first step of a goal, with the newest Claude Opus as the default (taken
+  automatically after 5 minutes only for a question relayed through a PM). Set no reasoning effort
   for a worker unless Roy names one. Preserve existing owners and the coordinator
   model. Do not change global defaults.
 - `/code-review` runs reviewer subagents. These are Claude subagents, separate
