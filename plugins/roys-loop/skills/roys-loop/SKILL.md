@@ -1,6 +1,6 @@
 ---
 name: roys-loop
-description: Roy's Loop role rules for PMs (dot, Hermes, grokbot), the Orca floating coordinator (one per project), and Orca workers. Use when you are a PM reporting loop status (running, stopped, blockers) or relaying Roy's goal or a GitHub or Tralalero request to a project's coordinator; when you are an Orca coordinator breaking work down, splitting several issues across parallel workers, assigning, correcting or verifying Orca workers, deciding /goal use and release scope, or cleaning up merged tasks' workers and worktrees; when you are an Orca worker, meaning you were explicitly assigned work as a worker or run in an Orca Task or Dispatch context such as a preamble with a Task ID; when a goal starts and Roy must be asked which model the workers use; when Roy corrects how Roy's Loop operates or live sessions must reload an updated skill; or when work involves PR-scoped code changes, the coordinator's /code-review and its findings, visual E2E checks, merging included PRs, or deployment scope. Also use on "Roy's Loop", "로이 루프" or "로이의 루프".
+description: Roy's Loop role rules for PMs (dot, Hermes, grokbot), the Orca floating coordinator (one per project), and Orca workers. Use when you are a PM reporting loop status (running, stopped, blockers) or relaying Roy's goal or a GitHub or Tralalero request to a project's coordinator; when you are an Orca coordinator breaking work down, splitting several issues across parallel workers, assigning, correcting or verifying Orca workers, deciding /goal use and release scope, or cleaning up merged tasks' workers and worktrees, or ending a loop with every branch merged and only main left; when you are an Orca worker, meaning you were explicitly assigned work as a worker or run in an Orca Task or Dispatch context such as a preamble with a Task ID; when a goal starts and Roy must be asked which model the workers use; when Roy corrects how Roy's Loop operates or live sessions must reload an updated skill; or when work involves PR-scoped code changes, the coordinator's /code-review and its findings, visual E2E checks, merging included PRs, or deployment scope. Also use on "Roy's Loop", "로이 루프" or "로이의 루프".
 ---
 
 # Roy's Loop
@@ -88,10 +88,11 @@ work. Do not create a loop, a coordinator or workers for it.
    - Its worktree is clean and has no live owner.
 
    Then remove that PR's temporary branch and worktree, so that the included work
-   remains only on main. Keep excluded PRs intact. Also keep any uncommitted,
-   untracked, unmerged or live-owned work intact. If something cannot be cleaned
-   up safely, keep it and report the cleanup blocker. Never apply this cleanup to
-   unrelated repositories or work. Merged tasks are also cleaned up promptly, not
+   remains only on main. Keep excluded PRs intact until the deploy is done; rule
+   10 then closes them out. Keep any uncommitted, untracked, unmerged or
+   live-owned work intact while you clean up; rule 10 says how the loop still
+   ends with only main. Never apply this cleanup to unrelated repositories or
+   work. Merged tasks are also cleaned up promptly, not
    only at release time; see the Coordinator's post-merge cleanup.
 6. **Fix root causes for the original purpose.** Do not hide or avoid a problem
    behind a "minimal change" rationale.
@@ -171,6 +172,28 @@ work. Do not create a loop, a coordinator or workers for it.
    - This default is Roy's standing instruction for starting workers only. It is
      not permission to switch a running worker's model or provider, for example
      after a provider error: stop and report that instead.
+10. **A loop ends with only main.** The coordinator does not report the goal done,
+    or stop, while any branch, worktree, PR, temporary clone or worker of this
+    loop is still open. Roy sees this go wrong all the time: verification spreads
+    into worktrees that are never wrapped up.
+    - Finish every branch: merge it into main through rule 3's gates, then remove
+      its worktree, local and remote branch, temporary clones and worker (see the
+      Coordinator's post-merge cleanup). Excluded PRs from rule 5 merge too once
+      the deploy is done; if merging to main itself deploys in this project, ask
+      Roy first.
+    - Uncommitted or untracked work in a loop worktree belongs to its PR: commit
+      it there, or ask Roy before discarding it. Never drop or apply a stash to
+      make a target look clean.
+    - A branch that cannot pass its gates does not stay open waiting. Ask Roy with
+      the question dialog: merge with the remaining findings written down, one
+      more fix round, or close it. Then do what he chose.
+    - Last step before the final report: `git fetch --prune`, then show that
+      `main` is checked out and equal to `origin/main`, and that `git worktree
+      list`, `git branch -a`, `gh pr list --state open` and the Orca worktree and
+      worker lists hold nothing of this loop. Put that output in the report.
+    - Work in the project that is not this loop's (another owner or a live
+      session) is not yours to merge or remove. List it in the final report with
+      its owner.
 
 ## PM (dot, Hermes, grokbot)
 
@@ -219,6 +242,11 @@ authority and the PM stays out of its way.
   project's own rules and Roy's words. Do not add review rounds, repeat a passed
   check on an unchanged head, or gather extra evidence because someone other
   than Roy asked.
+- **Keep the loop closable (rule 10).** Open only the worktrees, clones and
+  workers you can close before the loop ends. Remove a verification worktree or
+  clone as soon as its check is recorded, not at the end. Decide each PR's exit
+  before its third review round: if findings keep coming, ask Roy rather than
+  open another round or another worktree.
 - Keep your state readable without being asked: keep Orca task status current
   and write each task's report where Roy and PMs can read it.
 - Break the goal into tasks and give each one to a suitable Orca worker. Use the
@@ -347,5 +375,7 @@ authority and the PM stays out of its way.
   visual E2E is blocked, report blocked with the exact reason.
 - Do not start other workers, duplicate work, merge or deploy unless your task
   says to.
+- Create no worktree, clone or branch beyond your task's. Remove any scratch copy
+  you made before you report.
 - Do not run code reviews as a worker (`/review`, `/code-review`, `codex review`
   or any other reviewer), even when your tool has them. The coordinator reviews.
