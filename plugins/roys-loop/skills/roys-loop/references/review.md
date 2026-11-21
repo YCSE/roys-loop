@@ -38,10 +38,10 @@ pstack interrogate is not used for this review.
    revalidates them and reports the new head with its CI result. Review that
    head as "Later heads" describes; repeat until no verified findings remain.
    Then the owning worker runs the visual E2E on the affected flows. When the
-   worker reports that no flow is affected, compare its list of changed files
-   with `gh pr diff <PR number> --name-only` before you accept that. Before a
-   final pass or authorized merge, apply the head check in "Later heads". Keep
-   the
+   worker reports that none is affected, read `gh pr diff <PR number>`
+   yourself: if a changed file could reach a screen, the E2E runs. Otherwise
+   record the list from `gh pr diff <PR number> --name-only`. Before a final
+   pass or authorized merge, apply the head check in "Later heads". Keep the
    project's other required checks and release gates.
 
 Record the PR and full reviewed head, scope and intent, the exact invocation and
@@ -54,15 +54,15 @@ be run or proved, report it as blocked, not passed.
 
 ## Later heads
 
-The full `/code-review` runs once, at the first code-ready head. Classify each
-later head before you review it.
+The full `/code-review` runs at the first code-ready head, and again only for
+new behavior, a redesign or a large new diff. Classify each later head before
+you review it.
 
 - **The owner changed code.** For a fix round, run a delta review of the new
   head: rerun each verified finding's command, then review the diff from the
   reviewed head to the new head. Record it as a delta review with both heads. It
   is not a full `/code-review`, so never label it as one. The same holds for a
-  mutation check or any other variant: record it under its own name. New
-  behavior, a redesign or a large new diff gets a full `/code-review` again.
+  mutation check or any other variant: record it under its own name.
   Re-run the affected visual E2E after the code change.
 - **Only main moved.** When main was merged into the branch, or the branch was
   rebased onto main, compare the PR's own patch at the two heads. Fetch first so
@@ -82,16 +82,14 @@ later head before you review it.
   identical patch does not show that main's own changes leave the PR's behavior
   intact; the validation of the integrated main in `coordinator.md` covers
   that.
-- **Before a merge.** The current PR head must be the head that CI passed on and
-  that the review and the visual E2E cover, directly or by carry-over. Make the
-  forge enforce it: merge only with
-  `gh pr merge <PR number> --match-head-commit <that head>`, which refuses a head
-  that moved in the meantime.
+- **Before a merge.** For rule 3's head condition, a review and visual E2E that
+  carried over cover the new head. Rule 3's merge command refuses a head that
+  moved in the meantime.
 
-Review clones and worktrees are the coordinator's scratch. As soon as the
-review's findings are recorded, move the repros that the report cites into the
-report's folder, then remove the scratch once nothing still uses it and nothing
-unsaved is left in it. Keep the report.
+Review and verification clones and worktrees are the coordinator's scratch. As
+soon as the findings or the check are recorded, move the repros that the report
+cites into the report's folder, then remove the scratch once nothing still uses
+it and nothing unsaved is left in it. Keep the report.
 
 ## Model and platform boundaries
 

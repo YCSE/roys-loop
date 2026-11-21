@@ -67,7 +67,9 @@ holds the rules; this file says how you carry them out. Rule numbers are
 - Start a Run whose objective is Roy's goal in his words. A goal, an issue
   with several parts or a list of steps is not a unit. Use the Orca
   `orchestration` skill (`orca skills get orchestration`) for the
-  version-matched commands.
+  version-matched commands, and pass `--run <run id>` on every Orca command
+  for this goal: without it Orca uses your newest Run, and another goal's
+  plan and units would land in this one.
 - Record the plan as one Task that no worker gets: title it `PLAN v1` and set
   it to `pending`, the status that keeps it out of Orca's ready list. Its spec
   holds, a line each: the units still to come, with their outcome, evidence
@@ -76,9 +78,9 @@ holds the rules; this file says how you carry them out. Rule numbers are
 - Keep the plan current. A Task's spec cannot be edited, so a change is the
   next version: record `PLAN v2` with the whole current text, set it to
   `pending`, and close the old one as `completed` with the result `replaced by
-  <task id>`. The one `pending` Task is the plan. It changes when the cut
-  changes, when a constraint is learned and when Roy answers or you decide, not
-  each time a unit is handed out.
+  <task id>`. The one `pending` Task in the Run is the plan. It changes when
+  the cut changes, when a constraint is learned and when Roy answers or you
+  decide, not each time a unit is handed out.
 - When part of the goal cannot be cut yet, the plan says so and lists the unit
   that will let you cut it.
 - A unit leaves the plan as a Task when you hand it out. By then the reports it
@@ -103,12 +105,15 @@ holds the rules; this file says how you carry them out. Rule numbers are
   it (rule 2), with the model rule 9 settled.
 - Hand a unit over with `worker-start` and its spec file, which records the
   unit's Task. A unit on an existing branch goes to the settled worker that
-  owns the branch, with `--terminal <handle>`, while that terminal exists: Orca
-  releases it about two minutes after the worker's report. After that, a fresh
-  worker on that branch's worktree (`--worktree branch:<branch>`) takes the
-  unit; its spec stands alone, so the branch goes on without the session.
-  `send` to a finished worker records a follow-up Task of its own, which suits
-  a fix round.
+  owns the branch while its terminal exists, with `--terminal <handle>` and no
+  `--agent`, `--model` or `--effort`: the terminal keeps the model it started
+  with. A worker started in a worktree of its own stays open until you release
+  it; one started in an existing worktree is released by Orca about two
+  minutes after its report. Once the terminal is gone, a fresh worker on that
+  branch's worktree (`--worktree branch:<branch>`) takes the unit; its spec
+  stands alone, so the branch goes on without the session. `send` to a
+  finished worker records a follow-up Task of its own, which suits a fix
+  round.
 - A branch or PR that looks done is not a report.
 - The report is the worker's to send when its unit ends. Small units are what
   make it arrive: add no check-in messages, timers or polling to get it. A

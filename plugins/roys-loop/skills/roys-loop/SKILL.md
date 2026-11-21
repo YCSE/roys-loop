@@ -1,6 +1,6 @@
 ---
 name: roys-loop
-description: Roy's Loop role rules for PMs (dot, Hermes, grokbot), the Orca floating coordinator (one per project), and Orca workers. Load it again after a context compaction when you hold one of these roles and no longer have its text. Use when you are a PM reporting loop status (running, stopped, blockers) or relaying Roy's goal or a GitHub or Tralalero request to a project's coordinator; when you are an Orca coordinator breaking work down, splitting several issues across parallel workers, assigning, correcting or verifying Orca workers, deciding /goal use and release scope, or cleaning up merged tasks' workers and worktrees, tracking what is open, or ending a loop with only main left; when you are an Orca worker, meaning you were explicitly assigned work as a worker or run in an Orca Task or Dispatch context such as a preamble with a Task ID; when a goal starts and Roy must be asked which model the workers use; when Roy corrects how Roy's Loop operates or live sessions must reload an updated skill; or when work involves PR-scoped code changes, the coordinator's /code-review and its findings, visual E2E checks, merging included PRs, or deployment scope. Also use on "Roy's Loop", "로이 루프" or "로이의 루프".
+description: Roy's Loop role rules for PMs (dot, Hermes, grokbot), the Orca floating coordinator (one per project), and Orca workers. Load it again after a context compaction if you hold one of these roles and no longer have its text. Use when you are a PM reporting loop status or relaying Roy's goal or a GitHub/Tralalero request to a project's coordinator; when you are an Orca coordinator cutting work into units, running parallel workers, assigning, correcting or verifying workers, deciding /goal use and release scope, tracking what is open, cleaning up after merges or ending a loop; when you are an Orca worker, assigned work as a worker or running in an Orca Task or Dispatch context (a preamble with a Task ID); when a goal starts and the worker model must be settled; when Roy corrects how Roy's Loop operates or sessions must reload the updated skill; or when work involves PR-scoped code changes, the coordinator's /code-review, visual E2E, merges or deployment scope. Also use on "Roy's Loop", "로이 루프" or "로이의 루프".
 ---
 
 # Roy's Loop
@@ -71,14 +71,16 @@ work. Do not create a loop, a coordinator or workers for it.
      completed visual E2E. If it cannot be performed, report the exact blocker
      and never mark it passed.
    - A change that affects no screen flow, such as a documents-only PR, has no
-     visual E2E to run. Record that in the E2E's place with its evidence: the
-     PR's list of changed files at that head. It records that nothing is
-     affected; it never stands in for a flow that exists.
+     visual E2E to run. The coordinator decides that from the diff, never from
+     the worker's word alone: when a changed file could reach a screen, the
+     E2E runs. Otherwise the PR's list of changed files at that head is
+     recorded in the E2E's place.
    - A code change after review invalidates that review and the affected visual
      E2E. Merge only when the current PR head is the head that CI passed on and
-     that the review and the visual E2E cover. `references/review.md` says what
-     a later head needs: a delta review for a fix round, a carry-over when only
-     main moved.
+     that the review and the visual E2E cover, and have the forge enforce it:
+     `gh pr merge <PR number> --match-head-commit <that head>`.
+     `references/review.md` says what a later head needs: a delta review for a
+     fix round, a carry-over when only main moved.
    - Raising the review's cost is Roy's call: no `max` or `ultra` level unless
      Roy asks for it. `ultra` is a separately billed cloud review that the user
      triggers.
@@ -158,8 +160,9 @@ work. Do not create a loop, a coordinator or workers for it.
       unit: opening a PR, revalidating it, waiting for CI on that head and
       reporting it is one.
     - Before the first worker starts, the coordinator records the plan: one
-      Orca Task that holds the units still to come, the constraints (rule 13),
-      and Roy's answers and its own decisions. It keeps that record current.
+      Orca Task that lists the goal's units, the constraints (rule 13), and
+      Roy's answers and its own decisions. It keeps that record current, and
+      the Run's Tasks show which units are already out.
     - A unit becomes its own Task when it is handed out, after the reports it
       builds on are in and checked, with what they gave written into its spec.
       A worker holds one unit at a time.

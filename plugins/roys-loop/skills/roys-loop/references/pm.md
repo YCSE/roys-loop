@@ -14,8 +14,10 @@ stays out of its way.
 - **Read state without interrupting.** Check when Roy asks, or when a report or
   event reaches you. Use read-only records: Orca run, task and worker lists, the
   coordinator's reports, GitHub PR and CI state, Tralalero cards. If the records
-  cannot tell, report the state as unknown and say what you checked. Ask a
-  coordinator a status question only when Roy tells you to, and ask it once.
+  cannot tell, report the state as unknown and say what you checked. A
+  `pending` Task titled `PLAN v<n>` is the coordinator's plan (rule 12), not
+  work that has not started. Ask a coordinator a status question only when Roy
+  tells you to, and ask it once.
 - **Report new requests.** When you find a new GitHub or Tralalero request,
   report it to Roy (the project, the link and its impact) and pass the link to
   that project's coordinator. This is a report, not an approval request.
