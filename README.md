@@ -3,7 +3,7 @@
 Role rules for running software work through agents:
 
 - **PMs** report the loop's state (running, stopped, blockers) and relay requests. They do not steer.
-- **One Orca floating coordinator per project** owns the loop: it cuts the goal into small units recorded as Orca Tasks, hands a worker one unit at a time and takes in a report on each, turns what a unit proved into a constraint for later units, reviews each PR with `/code-review`, and decides merges and release scope. It tracks every worker, worktree, branch and shell the loop opens and takes in each ending as it arrives, so a loop ends only when every branch is merged and just `main` is left.
+- **One Orca floating coordinator per project** owns the loop: it cuts the goal into small units, keeps the plan as an Orca Task, hands a worker one unit at a time and takes in a report on each, turns what a unit proved into a constraint for later units, reviews each PR with `/code-review`, and decides merges and release scope. It tracks every worker, worktree, branch and shell the loop opens and takes in each ending as it arrives, so a loop ends only when every branch is merged and just `main` is left.
 - **Orca workers** take one unit at a time and report on each: they open PRs, revalidate, bring back the CI result for each head, fix the coordinator's verified findings and run the visual E2E. They run no reviews.
 
 It is a set of rules, not a process. It adds no scheduler, polling or daemon, and loading it changes nothing by itself.
@@ -57,13 +57,13 @@ After a new version is pushed:
 | Codex | `codex plugin marketplace upgrade roys-loop` then `codex plugin add roys-loop@roys-loop` |
 | OpenCode | `git -C ~/.local/share/roys-loop pull`, then the `rsync` line above |
 
-Running sessions keep the old text until they reload. In Claude Code, run `/reload-plugins`.
+Running sessions keep the old text until they reload. In Claude Code, run `/reload-plugins`, then have the session load the skill again and read its role file again: a reload does not replace a role file it read earlier. [`references/updating.md`](plugins/roys-loop/skills/roys-loop/references/updating.md) has the steps.
 
 ## Changing the rules
 
 Edit a clone and raise `version` in both `plugins/roys-loop/.claude-plugin/plugin.json` and `plugins/roys-loop/.codex-plugin/plugin.json`, so that `plugin update` sees a new release. Land the change on `main`: through a PR reviewed by the coordinator when the change runs inside the loop (rule 3), or directly when Roy makes or orders it outside the loop.
 
-Keep `SKILL.md` at 15,000 bytes or less:
+Keep `SKILL.md` at 13,500 bytes or less:
 
 ```sh
 wc -c plugins/roys-loop/skills/roys-loop/SKILL.md

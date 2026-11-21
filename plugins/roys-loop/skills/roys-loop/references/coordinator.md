@@ -41,19 +41,17 @@ holds the rules; this file says how you carry them out. Rule numbers are
   already named a worker model for this goal.
 - When Roy gives the goal in your own session, ask with the tool's question
   dialog (in Claude Code, `AskUserQuestion`), never as a line of text between
-  tool calls. Put the newest Claude Opus first, labeled as the default, add the
+  tool calls. Put rule 9's default first, labeled as the default, add the
   other agents and models the worker host offers (for example Codex), and let
   Roy type his own. The dialog waits for his answer: Claude Code's has no
   timeout, so start no worker until he answers.
-- The newest Claude Opus is the latest Opus the worker's tool offers when the
-  worker starts. On 2026-11-19 that is Claude Opus 5.5 (`claude-opus-5-5`);
-  check the current model list rather than assuming it is still the newest.
-  Through Orca that is `--agent claude --model <that id>`.
+- If the worker's tool no longer offers the default model, start no worker and
+  ask Roy; do not pick another model for him.
 - When the goal came through a PM, Roy is not at your session. The PM passes
   the question to Roy and his answer back unchanged. Ask in that message, say
   the default and the time it applies, and note the time. If Roy has not
-  answered 5 minutes later, use the newest Claude Opus. Meanwhile cut the goal
-  into units, record them and check owners, but start no worker. If you are
+  answered 5 minutes later, use the default. Meanwhile cut the goal into
+  units, record the plan and check owners, but start no worker. If you are
   ready sooner, wait out the remaining time with one one-shot timer (in Claude
   Code, a single background `sleep`), never a polling loop. This wait is the
   only timer Roy's Loop uses.
@@ -66,40 +64,52 @@ holds the rules; this file says how you carry them out. Rule numbers are
 
 ## Cut the goal into units (rule 12)
 
-- Record the breakdown under a Run whose objective is Roy's goal in his words,
-  as Tasks with their dependencies. A goal, an issue with several parts or a
-  list of steps is not a unit. Use the Orca `orchestration` skill
-  (`orca skills get orchestration`) for the version-matched commands; its
-  `references/coordinator-loop.md` covers Tasks with dependencies.
-- When part of the goal cannot be cut yet, make the unit that will let you cut
-  it a Task, and say in its spec which part waits for it.
-- Work that appears later, such as a fix round or a new cut, is a Task by the
-  time it is handed over. Roy's answers and your own decisions go into the task
-  reports as you get or make them.
+- Start a Run whose objective is Roy's goal in his words. A goal, an issue
+  with several parts or a list of steps is not a unit. Use the Orca
+  `orchestration` skill (`orca skills get orchestration`) for the
+  version-matched commands.
+- Record the plan as one Task that no worker gets: title it `PLAN v1` and set
+  it to `pending`, the status that keeps it out of Orca's ready list. Its spec
+  holds, a line each: the units still to come, with their outcome, evidence
+  and what they build on; the constraints (rule 13); Roy's answers and your
+  decisions; and where the task reports are kept.
+- Keep the plan current. A Task's spec cannot be edited, so a change is the
+  next version: record `PLAN v2` with the whole current text, set it to
+  `pending`, and close the old one as `completed` with the result `replaced by
+  <task id>`. The one `pending` Task is the plan. It changes when the cut
+  changes, when a constraint is learned and when Roy answers or you decide, not
+  each time a unit is handed out.
+- When part of the goal cannot be cut yet, the plan says so and lists the unit
+  that will let you cut it.
+- A unit leaves the plan as a Task when you hand it out. By then the reports it
+  builds on are in and checked: write into its spec what they gave (the branch,
+  the head, decisions) and the constraints that apply. Give the Task the name
+  the plan uses for the unit, so that the Tasks show which units are out.
 - Every unit's spec stands alone: the outcome, the evidence that proves it, the
   paths the worker may write and the actions it must not take. A code unit's
   spec names its part of rule 3's sequence, with no review step for the worker.
 - A unit is a unit of handing over and reporting, not of merging. One PR can
-  take several units in order from the worker that owns its branch (rule 2).
-  The unit that completes the change opens the PR, and rule 3 gates it from
-  there as before.
-- When a report shows the cut was wrong, bring the Tasks in line with the new
-  cut before you hand out the next unit. `task-update` changes a Task's status
-  and result, not its spec: a recorded Task whose spec must change is closed
-  the way `orca orchestration task-update --help` gives for a cancelled Task
-  and recorded again, together with the Tasks that depended on it.
+  take several units in order on its branch (rule 2). The unit that completes
+  the change opens the PR, and rule 3 gates it from there as before.
+- When a report shows the cut was wrong, change the plan before you hand out
+  the next unit. When a worker asks for its own unit to be cut, answer it
+  first: it commits and pushes what is done and reports that. Then put the new
+  units on the plan and set the old Task's result to name them, so that its
+  status does not read as lost work.
 
 ## Hand units out
 
 - Give each unit to a suitable Orca worker, or to the worker that already owns
   it (rule 2), with the model rule 9 settled.
-- Hand over a recorded Task with `worker-start --task <task id>`, adding
-  `--terminal <handle>` when it goes to a settled worker that already owns the
-  branch. `send` to a finished worker creates a follow-up Task of its own: use
-  it for work that has no Task yet, such as a fix round, and never for a
-  recorded Task, which would then stay open.
-- A branch or PR that looks done is not a report, and Orca listing a Task as
-  ready is not your check of its dependencies' evidence.
+- Hand a unit over with `worker-start` and its spec file, which records the
+  unit's Task. A unit on an existing branch goes to the settled worker that
+  owns the branch, with `--terminal <handle>`, while that terminal exists: Orca
+  releases it about two minutes after the worker's report. After that, a fresh
+  worker on that branch's worktree (`--worktree branch:<branch>`) takes the
+  unit; its spec stands alone, so the branch goes on without the session.
+  `send` to a finished worker records a follow-up Task of its own, which suits
+  a fix round.
+- A branch or PR that looks done is not a report.
 - The report is the worker's to send when its unit ends. Small units are what
   make it arrive: add no check-in messages, timers or polling to get it. A
   worker that reports a compaction had a unit that was too big: cut what is
@@ -147,12 +157,16 @@ holds the rules; this file says how you carry them out. Rule numbers are
   Take in a CI result that does reach you by itself, but never count on one.
 - At each event, compare your records with the real state (`orca orchestration
   worker-list`, `orca worktree ps`, `git worktree list`, `gh pr list`) and fix
-  each difference then. This is a check at an event, not polling. Silence, a
-  timeout or unverifiable liveness does not prove that a worker ended: follow
-  Orca's recovery guide and ask Roy rather than presume it dead and remove it.
-- After a compaction, `orca orchestration task-list --full` gives the Run's
-  Tasks with their specs and results. Read them and each open task's report,
-  then make the comparison above, before your next step.
+  each difference then. This is a check at an event, not polling. For a worker
+  that is silent, timed out or of unverifiable liveness, follow Orca's recovery
+  guide and ask Roy.
+- After a compaction, `orca orchestration run-current` shows the Run bound to
+  your terminal with its objective, and `run-list` shows every Run. Then
+  `orca orchestration task-list --environment local --run <run id> --json
+  --full` returns the Run's Tasks with their specs and results; without
+  `--json` the specs are not printed, and without `--run` Orca lists the newest
+  Run. Read the plan, the open Tasks and their reports, then make the
+  comparison above, before your next step.
 - The events you supervise through are Orca messages and the endings above,
   read at event boundaries. Add no daemons or new services.
 - Report to Roy per task: the outcome, the evidence, PRs and their review status,
@@ -184,13 +198,13 @@ holds the rules; this file says how you carry them out. Rule numbers are
   later work must respect: a confirmed cause, something the code must keep
   doing, a step the environment needs. Most units prove nothing of the kind;
   write a constraint only when one did.
-- Write it in the task report with what it was derived from: the unit, the PR
-  or the finding.
-- Use it when you cut what is left. A unit it applies to carries it in its spec
-  before that unit is handed out; for a Task already recorded, that is the
-  replacement "Cut the goal into units" describes.
-- When a later result contradicts a constraint, correct or remove it where it
-  is recorded, in that turn, and say what contradicted it.
+- Write it on the plan with what it was derived from: the unit, the PR or the
+  finding.
+- Use it when you cut what is left, and write it into the spec of each unit it
+  applies to when that unit becomes a Task. A unit already handed out is
+  checked against it when its report arrives.
+- When a later result contradicts a constraint, correct or remove it on the
+  plan in that turn, and say what contradicted it.
 - Before the loop ends, one unit carries those that hold beyond this goal into
   the agent instruction file the project already has, such as its `CLAUDE.md`
   or `AGENTS.md`. List them in the final report. If the project has no such
@@ -213,7 +227,6 @@ and keep the loop from closing.
   - any valuable uncommitted, untracked or ignored data, relevant stashes,
     evidence that must be retained, and downstream dependencies.
 - Preserve active, unmerged, excluded, user-owned or uncertain work and data.
-  Never drop or apply a stash, or discard files, to make a target look clean.
   Move needed evidence somewhere durable before removing its only copy. Do not
   expose or relocate credentials.
 - Retiring a session or worktree does not delete its records. Keep transcripts,
@@ -221,8 +234,7 @@ and keep the loop from closing.
   authorized. Retained records are not a reason to keep an eligible session
   alive.
 - Use the version-matched supported Orca commands, for example
-  `orca orchestration worker-release` and `orca worktree rm`. Never force-remove
-  a dirty, live or uncertain target.
+  `orca orchestration worker-release` and `orca worktree rm`.
 - Record the exact reason for any target you keep, and clean it up once that
   dependency ends.
 
@@ -235,7 +247,8 @@ and keep the loop from closing.
   it there, or ask Roy before discarding it.
 - A branch that cannot pass its gates does not stay open waiting. Ask Roy with
   the question dialog: merge with the remaining findings written down, one
-  more fix round, or close it. Then do what he chose.
+  more fix round, or close it. When the goal came through a PM, the question
+  goes through the PM, as the model question does. Then do what he chose.
 - Last step before the final report: `git fetch --prune`, then show that
   `main` is checked out and equal to `origin/main`, and that `git worktree
   list`, `git branch -a`, `gh pr list --state open` and the Orca worktree and
@@ -244,6 +257,6 @@ and keep the loop from closing.
 - Work in the project that is not this loop's (another owner or a live
   session) is not yours to merge or remove. List it in the final report with
   its owner.
-- When nothing is open and the check above passes, the loop is over: send the
-  final report and stop. Leave no worker, timer, background job or active
-  `/goal` behind it.
+- When no unit is left and the check above passes, close the plan Task as
+  `completed`. The loop is over: send the final report and stop. Leave no
+  worker, timer, background job or active `/goal` behind it.

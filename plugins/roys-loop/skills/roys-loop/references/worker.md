@@ -12,9 +12,11 @@ rules; this file says how you carry them out. Rule numbers are `SKILL.md`'s.
   coordinator to cut it, saying what is done and where you would cut, rather
   than push on.
 - After a compaction, read your Task's spec again before your next step:
-  `orca orchestration dispatch-show --task <task id>` shows a Task's dispatch
-  context. Say in your report that a compaction happened, because it tells the
-  coordinator the unit was too big.
+  `orca orchestration dispatch-show --task <task id> --preamble` prints your
+  preamble again: the report commands with their IDs, and the task's spec. If
+  you no longer know your Task id, ask the coordinator with
+  `orca orchestration ask` before you go on. Say in your report that a
+  compaction happened, because it tells the coordinator the unit was too big.
 - Report the real state of the work (rule 11).
   - With a question, ask the coordinator, and keep waiting for the answer
     instead of finishing.

@@ -1,6 +1,6 @@
 ---
 name: roys-loop
-description: Roy's Loop role rules for PMs (dot, Hermes, grokbot), the Orca floating coordinator (one per project), and Orca workers. Use when you are a PM reporting loop status (running, stopped, blockers) or relaying Roy's goal or a GitHub or Tralalero request to a project's coordinator; when you are an Orca coordinator breaking work down, splitting several issues across parallel workers, assigning, correcting or verifying Orca workers, deciding /goal use and release scope, or cleaning up merged tasks' workers and worktrees, tracking what is open, or ending a loop with only main left; when you are an Orca worker, meaning you were explicitly assigned work as a worker or run in an Orca Task or Dispatch context such as a preamble with a Task ID; when a goal starts and Roy must be asked which model the workers use; when Roy corrects how Roy's Loop operates or live sessions must reload an updated skill; or when work involves PR-scoped code changes, the coordinator's /code-review and its findings, visual E2E checks, merging included PRs, or deployment scope. Also use on "Roy's Loop", "로이 루프" or "로이의 루프", and load it again after a context compaction when you hold one of these roles and no longer have its text.
+description: Roy's Loop role rules for PMs (dot, Hermes, grokbot), the Orca floating coordinator (one per project), and Orca workers. Load it again after a context compaction when you hold one of these roles and no longer have its text. Use when you are a PM reporting loop status (running, stopped, blockers) or relaying Roy's goal or a GitHub or Tralalero request to a project's coordinator; when you are an Orca coordinator breaking work down, splitting several issues across parallel workers, assigning, correcting or verifying Orca workers, deciding /goal use and release scope, or cleaning up merged tasks' workers and worktrees, tracking what is open, or ending a loop with only main left; when you are an Orca worker, meaning you were explicitly assigned work as a worker or run in an Orca Task or Dispatch context such as a preamble with a Task ID; when a goal starts and Roy must be asked which model the workers use; when Roy corrects how Roy's Loop operates or live sessions must reload an updated skill; or when work involves PR-scoped code changes, the coordinator's /code-review and its findings, visual E2E checks, merging included PRs, or deployment scope. Also use on "Roy's Loop", "로이 루프" or "로이의 루프".
 ---
 
 # Roy's Loop
@@ -18,7 +18,8 @@ the "Base directory for this skill" line):
 - Coordinator: `references/coordinator.md`, with `references/review.md` when
   you review or merge a PR and `references/updating.md` when the skill itself
   changes (rule 8)
-- Worker: `references/worker.md`
+- Worker: `references/worker.md`, with `references/updating.md` when your
+  task changes this skill
 
 **If your role file's text is not in front of you, read it before your next
 step.** That is so when this skill has just loaded, and again after a context
@@ -71,7 +72,9 @@ work. Do not create a loop, a coordinator or workers for it.
      and never mark it passed.
    - A code change after review invalidates that review and the affected visual
      E2E. Merge only when the current PR head is the head that CI passed on and
-     that the review and the visual E2E cover.
+     that the review and the visual E2E cover. `references/review.md` says what
+     a later head needs: a delta review for a fix round, a carry-over when only
+     main moved.
    - Raising the review's cost is Roy's call: no `max` or `ultra` level unless
      Roy asks for it. `ultra` is a separately billed cloud review that the user
      triggers.
@@ -115,22 +118,25 @@ work. Do not create a loop, a coordinator or workers for it.
    relayed unchanged by a PM. The coordinator has a worker update the source
    repository `YCSE/roys-loop` and the installed copies, verify that they are
    identical and that a fresh session loads the change, and then has each live
-   session reload. A verbal promise is not an update, a model saying it knows
-   the rule is not a reload, and a skill cannot reload a running session by
-   itself.
-9. **Ask Roy for the worker model when a goal starts.** This skill fixes no
-   worker model. The coordinator asks once, as its first step on the goal after
-   reading its role file, and passes exactly what Roy names. The role file
-   gives the question and the default that applies when Roy does not answer.
-   That default is Roy's standing instruction for starting workers only. It is
-   not permission to switch a running worker's model or provider, for example
-   after a provider error: stop and report that instead. Do not change the
+   session reload, as `references/updating.md` describes. A verbal promise is
+   not an update, a model saying it knows the rule is not a reload, and a skill
+   cannot reload a running session by itself.
+9. **Ask Roy for the worker model when a goal starts.** The coordinator asks
+   once, as its first step on the goal after reading its role file, and passes
+   exactly what Roy names. When Roy names none, the default is `--agent claude
+   --model claude-opus-5-5`: Roy's standing instruction of 2026-11-21, which
+   changes only when Roy says so. It covers starting workers only. It is not
+   permission to switch a running worker's model or provider, for example after
+   a provider error: stop and report that instead. Do not change the
    coordinator model or global defaults.
 10. **A loop ends with only main.** The coordinator does not report the goal done,
     or stop, while any branch, worktree, PR, temporary clone or worker of this
     loop is still open. Roy sees this go wrong all the time: verification spreads
     into worktrees that are never wrapped up. Merging a PR and cleaning up after
-    it are one step.
+    it are one step. Cleanup never destroys work: never force-remove a dirty,
+    live or uncertain target, never drop or apply a stash or discard files to
+    make one look clean, and never take silence as proof that a worker ended.
+    When in doubt, keep it and ask Roy.
 11. **Track what is open, and take in every ending.** Roy: tracking is very
     important; without it the loop never closes and only burns tokens. At every
     turn the coordinator knows what this loop still has open and what will close
@@ -148,16 +154,21 @@ work. Do not create a loop, a coordinator or workers for it.
     could carry the loop on from the records alone.
     - A unit has one outcome and one piece of evidence that proves it, and a
       worker can finish and report it well inside one context. If its spec
-      needs "and then" or names several outcomes, cut it again.
-    - The coordinator records the whole breakdown as Orca Tasks before the
-      first worker starts. A worker holds one unit at a time.
+      names several outcomes, cut it again. The steps to one outcome are one
+      unit: opening a PR, revalidating it, waiting for CI on that head and
+      reporting it is one.
+    - Before the first worker starts, the coordinator records the plan: one
+      Orca Task that holds the units still to come, the constraints (rule 13),
+      and Roy's answers and its own decisions. It keeps that record current.
+    - A unit becomes its own Task when it is handed out, after the reports it
+      builds on are in and checked, with what they gave written into its spec.
+      A worker holds one unit at a time.
     - A unit is finished only when its report has reached the coordinator and
-      the coordinator has checked its evidence against the spec. A unit that
-      depends on it starts only after that.
+      the coordinator has checked its evidence against the spec.
     - After a compaction, the records to read again are the Task's spec for a
-      worker, and the Run's Tasks and the open tasks' reports for a
-      coordinator. A worker that cannot get its spec back asks the coordinator
-      for it rather than work from the summary.
+      worker, and the plan and the Run's Tasks for a coordinator. A worker that
+      cannot get its spec back asks the coordinator for it rather than work
+      from the summary.
 13. **Turn what a unit proved into a constraint for later units.** Without this
     a loop is fast and never gets smarter: the same failure comes back in the
     next unit and in the next loop. When the coordinator accepts a unit or

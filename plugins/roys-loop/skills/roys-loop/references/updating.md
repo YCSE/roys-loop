@@ -18,10 +18,10 @@ records, because anyone can read it.
 
 Where a rule goes:
 
-- `SKILL.md` stays at 15,000 bytes or less; check with `wc -c`. After a context
+- `SKILL.md` stays at 13,500 bytes or less; check with `wc -c`. After a context
   compaction a tool may keep only the start of a skill: on 2026-11-21 Claude
-  Code's documentation says the first 5,000 tokens. At that size the whole file
-  fits even at three bytes a token.
+  Code's documentation says the first 5,000 tokens. At three bytes a token the
+  limit is 4,500 tokens, which leaves a tenth spare.
 - `SKILL.md` holds what binds every role, and every limit that must hold even
   when a role file was not read: the money guards, the gates that are never
   waived, the secret and account limits, and what a worker never does.
