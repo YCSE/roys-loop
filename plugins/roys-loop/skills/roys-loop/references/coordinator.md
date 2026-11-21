@@ -149,6 +149,25 @@ holds the rules; this file says how you carry them out. Rule numbers are
   update the task's status, and take the step it unblocks: verify and review,
   route the fix, retry, merge, clean up, or ask Roy. An ending you did not
   record is an item you still think is running.
+- A worker that stopped because Roy switched its tool's login account has not
+  ended, and it is not a question for Roy: the switch was Roy's step, and
+  carrying the worker on into the new account is yours (rule 7).
+  - As seen in Claude Code: the session stops with a line saying it belongs
+    to another account and that a message lets you choose the account. If
+    no prompt is open yet, send the worker a short message. If it offers a
+    choice first, pick the one that copies the session to the new account.
+    Then choose Continue at "Copy this session to …?". Other tools may word
+    or handle this differently.
+  - These prompts take keys, not messages. Read the worker's screen (`orca
+    terminal read`) and send one key at a time (`orca terminal send`),
+    reading the screen again after each: do not trust the focused option or
+    a bare Enter.
+  - Check that the worker takes up its task again, and record in that task
+    that it moved and to which account.
+  - Only the copy is yours to choose. Any other choice in that prompt, and
+    every other approval or permission prompt, still goes to Roy under rule
+    7, and the copy is no leave to change a worker's model or provider (rule
+    9).
 - Verify each result yourself before you report it: evidence, review status,
   checks, the final tested HEAD and the visual E2E evidence. A `worker_done` is
   a claim, not proof.
