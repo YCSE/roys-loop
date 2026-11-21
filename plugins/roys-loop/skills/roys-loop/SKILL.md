@@ -113,7 +113,11 @@ work. Do not create a loop, a coordinator or workers for it.
      become an organization-wide blocker waiting on a user decision.
    - Route permission or account changes, high-risk user steps, and release or
      deploy decisions beyond Roy's goal to Roy. Never waive required review,
-     visual E2E or CI.
+     visual E2E or CI. Changing an account stays Roy's. When the coordinator
+     knows that Roy changed it and the tool's prompt names that account,
+     copying a stopped worker's session into it is the coordinator's, and that
+     copy is all it may choose there (`references/coordinator.md`, "Track
+     what is open").
    - Classify each blocker as a tool defect, resource conflict or product defect;
      keep diagnosing, fixing and verifying within the existing root-cause scope.
    - Never expose secrets in messages, reports, files, logs or screenshots. Never
