@@ -1,10 +1,9 @@
 # Code review in Roy's Loop
 
-Read this reference when the coordinator reviews a worker's code change. Roy's
-Loop's role, permission, ownership and release rules still apply. Reviewing is
-the coordinator's job: workers do not run code reviews. A review is not
-permission to merge, deploy, change model settings, start a watcher, or bypass a
-required gate.
+Read this reference when the coordinator reviews or merges a worker's code
+change. Roy's Loop's role, permission, ownership and release rules still apply,
+and rule numbers are `SKILL.md`'s. A review is not permission to merge, deploy,
+change model settings, start a watcher, or bypass a required gate.
 
 Since 0.8.0 (2026-11-19) the coordinator's review is Claude Code's built-in
 `/code-review`. pstack interrogate is no longer used, and the worker's own
@@ -22,24 +21,27 @@ Since 0.8.0 (2026-11-19) the coordinator's review is Claude Code's built-in
    cannot be established, report a blocker rather than review a stale or
    contaminated diff.
 3. Run the built-in `/code-review <PR number>`. It is the command with effort
-   levels (`low` to `max`, plus `ultra`), not the `code-review:code-review`
-   plugin skill. From inside another skill, invoke it through the `Skill` tool
-   with the PR number as its argument; follow the tool's actual schema and do
-   not invent flags.
-   - Flags and levels stay within SKILL.md's Coordinator limits: no `--fix`, no
-     `--comment` unless the task asks, no `max` or `ultra` unless Roy asks.
+   levels, not the `code-review:code-review` plugin skill. From inside another
+   skill, invoke it through the `Skill` tool with the PR number as its
+   argument; follow the tool's actual schema and do not invent flags.
+   - Do not pass `--fix`: the review reports findings and the owning worker
+     fixes them. Do not pass `--comment` unless the task asks for PR comments.
+     The level stays within rule 3's limit.
    - Record the level the review reports it ran at.
    - Read the PR head again after the review. If it moved while the review ran,
      the review covers the old head only.
-4. Verify each finding before you route it. Read the cited code at the reviewed
-   head and reproduce the failure with a run where you can. Keep verified
-   failures that break the intended behavior, merge findings with the same root
-   cause, and record dropped findings with the reason.
+4. Verify each finding before you route it: a finding is a claim. Read the
+   cited code at the reviewed head and reproduce the failure with a run where
+   you can. Keep verified failures that break the intended behavior, merge
+   findings with the same root cause, and record dropped findings with the
+   reason. No verified findings is a valid result, but it is not proof that no
+   other defects exist.
 5. Route verified findings to the existing owning Orca worker, who fixes and
    revalidates them and reports the new head with its CI result. Review that
    head as "Later heads" describes; repeat until no verified findings remain.
-   Then run actual visual E2E on the affected flows. Before a final pass or
-   authorized merge, apply the head check in "Later heads". Keep the
+   Then the owning worker runs the visual E2E on the affected flows. Before a
+   final pass or authorized merge, apply the head check in "Later heads". Keep
+   the
    project's other required checks and release gates.
 
 Record the PR and full reviewed head, scope and intent, the exact invocation and
@@ -78,7 +80,8 @@ later head before you review it.
   an output is empty or a command fails, treat the head as changed code. The id
   also changes when main touched the context lines around the PR's hunks. An
   identical patch does not show that main's own changes leave the PR's behavior
-  intact; rule 5's validation of the integrated main covers that.
+  intact; the validation of the integrated main in `coordinator.md` covers
+  that.
 - **Before a merge.** The current PR head must be the head that CI passed on and
   that the review and the visual E2E cover, directly or by carry-over. Make the
   forge enforce it: merge only with
@@ -92,44 +95,13 @@ unsaved is left in it. Keep the report.
 
 ## Model and platform boundaries
 
-- Worker models follow SKILL.md rule 9. Preserve existing owners and the
-  coordinator model. Do not change global defaults.
-- `/code-review`'s reviewers are Claude subagents on the configured default
-  subagent model (see SKILL.md's Coordinator section). Do not claim a model was
-  used unless it is observable.
+- Worker models follow rule 9. Preserve existing owners.
+- `/code-review`'s reviewers are Claude subagents, not Orca workers. They run
+  on the configured default subagent model, which may differ from the session
+  model, and may incur additional model usage. Report actual models only when
+  observable.
+- If the review cannot run on the exact PR head, report the exact blocker. Do
+  not silently relax an explicit model restriction or claim the review passed.
 - `/code-review` is a Claude Code command. A coordinator in a tool without it
   (Codex, OpenCode) reports the blocker. Do not run that tool's own reviewer,
   such as Codex `/review` or `codex review`, and present it as `/code-review`.
-
-## Installation, updates and reload evidence
-
-The single source of Roy's Loop is the public GitHub repository
-[`YCSE/roys-loop`](https://github.com/YCSE/roys-loop). Change it there: edit a
-clone, raise the `version` in both `plugins/roys-loop/.claude-plugin/plugin.json`
-and `plugins/roys-loop/.codex-plugin/plugin.json`, and land it on `main`: through
-a PR under rule 3 when a coordinator runs the change, or directly when Roy makes
-or orders it outside the loop.
-Never edit an installed copy; a cache-only edit is overwritten by the next
-update. Keep the repository free of secrets, hostnames, personal paths and work
-records, because anyone can read it.
-
-Every device installs from that repository (the README has the install
-commands). After a push, bring each device up to date:
-
-- Claude Code: `claude plugin marketplace update roys-loop --json`, then
-  `claude plugin update roys-loop@roys-loop --scope user --json`. A device with
-  the marketplace's `autoUpdate` on may already have done this itself; check.
-- Codex: `codex plugin marketplace upgrade roys-loop`, then
-  `codex plugin add roys-loop@roys-loop --json`.
-- OpenCode: `git pull` in its clone, then copy the skill folder into OpenCode's
-  skills directory with `rsync -a --delete` (see the README).
-
-Do these only when the update is authorized. Verify that each device's active
-installed `SKILL.md` and `references/review.md` match the pushed commit; a
-command's success message alone is not verification. Respect a denied update
-and report it rather than replacing the cache to evade the denial.
-
-Then reload each live session and keep the evidence as SKILL.md rule 8 says. A
-new session or reading a file is not a claimed live reload. If the platform has
-no supported native reload or access is denied, report the exact session and
-blocker.
