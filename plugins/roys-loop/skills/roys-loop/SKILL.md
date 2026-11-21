@@ -128,10 +128,11 @@ work. Do not create a loop, a coordinator or workers for it.
 9. **Ask Roy for the worker model when a goal starts.** The coordinator asks
    once, as its first step on the goal after reading its role file, and passes
    exactly what Roy names. When Roy names none, the default is `--agent claude
-   --model claude-opus-5-5`, and it changes only when this rule does. It covers
-   starting workers only. It is not permission to switch a running worker's
-   model or provider, for example after a provider error: stop and report that
-   instead. Do not change the coordinator model or global defaults.
+   --model opus`, Claude Code's alias for its latest Opus, and it changes only
+   when this rule does. It covers starting workers only. It is not permission
+   to switch a running worker's model or provider, for example after a
+   provider error: stop and report that instead. Do not change the coordinator
+   model or global defaults.
 10. **A loop ends with only main.** The coordinator does not report the goal done,
     or stop, while any branch, worktree, PR, temporary clone or worker of this
     loop is still open. Merging a PR and cleaning up after it are one step.
