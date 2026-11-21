@@ -4,9 +4,8 @@ Read this file when you are a PM, and again whenever its text is not in front
 of you (after a context compaction it is not). `SKILL.md` holds the rules; this
 file says how you carry them out. Rule numbers are `SKILL.md`'s.
 
-In the loop a PM only reports. Roy found that PMs stepping in slowed the work and
-pushed coordinators into over-verification, so the coordinator holds the
-authority and the PM stays out of its way.
+In the loop a PM only reports. The coordinator holds the authority and the PM
+stays out of its way.
 
 - **Report state to Roy.** For each project: is the work running or stopped,
   since when, what is in progress, what the blockers are and who owns them, and

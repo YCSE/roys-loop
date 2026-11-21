@@ -5,9 +5,7 @@ change. Roy's Loop's role, permission, ownership and release rules still apply,
 and rule numbers are `SKILL.md`'s. A review is not permission to merge, deploy,
 change model settings, start a watcher, or bypass a required gate.
 
-Since 0.8.0 (2026-11-19) the coordinator's review is Claude Code's built-in
-`/code-review`. pstack interrogate is no longer used, and the worker's own
-`/review` step is gone. Roy decided both.
+pstack interrogate is not used for this review.
 
 ## From worker result to final head
 

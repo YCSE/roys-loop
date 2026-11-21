@@ -27,6 +27,9 @@ Where a rule goes:
   waived, the secret and account limits, and what a worker never does.
 - How one role carries a rule out goes into that role's file. State each rule
   once and point to it from elsewhere.
+- Write a rule as the rule. Do not quote, date or attribute the request it came
+  from: this skill is the single source of its rules, and a quoted request only
+  repeats one.
 
 ## Bring each device up to date
 

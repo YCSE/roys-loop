@@ -128,34 +128,29 @@ work. Do not create a loop, a coordinator or workers for it.
 9. **Ask Roy for the worker model when a goal starts.** The coordinator asks
    once, as its first step on the goal after reading its role file, and passes
    exactly what Roy names. When Roy names none, the default is `--agent claude
-   --model claude-opus-5-5`: Roy's standing instruction of 2026-11-21, which
-   changes only when Roy says so. It covers starting workers only. It is not
-   permission to switch a running worker's model or provider, for example after
-   a provider error: stop and report that instead. Do not change the
-   coordinator model or global defaults.
+   --model claude-opus-5-5`, and it changes only when this rule does. It covers
+   starting workers only. It is not permission to switch a running worker's
+   model or provider, for example after a provider error: stop and report that
+   instead. Do not change the coordinator model or global defaults.
 10. **A loop ends with only main.** The coordinator does not report the goal done,
     or stop, while any branch, worktree, PR, temporary clone or worker of this
-    loop is still open. Roy sees this go wrong all the time: verification spreads
-    into worktrees that are never wrapped up. Merging a PR and cleaning up after
-    it are one step. Cleanup never destroys work: never force-remove a dirty,
-    live or uncertain target, never drop or apply a stash or discard files to
-    make one look clean, and never take silence as proof that a worker ended.
-    When in doubt, keep it and ask Roy.
-11. **Track what is open, and take in every ending.** Roy: tracking is very
-    important; without it the loop never closes and only burns tokens. At every
-    turn the coordinator knows what this loop still has open and what will close
-    each item, from the records it already has and no separate ledger. It takes
-    in every ending in the turn it arrives. A worker never stops without a
-    report: the coordinator can only track an ending it receives. CI is not a
-    sender to wait on, because sometimes it wakes the coordinator and sometimes
-    it does not: a worker brings back the result of every CI run the loop waits
-    on. Supervise through events, never by polling or watchers.
-12. **Hand out small units, and take in a report on each.** Roy: we push too
-    much work onto one worker and the coordinator forgets it. Small work
-    survives that; on complex work a context compaction loses so much that the
-    loop cannot go on. So nothing the loop needs lives only in a context: a
-    fresh worker could do a unit from its spec alone, and a fresh coordinator
-    could carry the loop on from the records alone.
+    loop is still open. Merging a PR and cleaning up after it are one step.
+    Cleanup never destroys work: never force-remove a dirty, live or uncertain
+    target, never drop or apply a stash or discard files to make one look
+    clean, and never take silence as proof that a worker ended. When in doubt,
+    keep it and ask Roy.
+11. **Track what is open, and take in every ending.** At every turn the
+    coordinator knows what this loop still has open and what will close each
+    item, from the records it already has and no separate ledger. It takes in
+    every ending in the turn it arrives. A worker never stops without a report:
+    the coordinator can only track an ending it receives. CI is not a sender to
+    wait on, because sometimes it wakes the coordinator and sometimes it does
+    not: a worker brings back the result of every CI run the loop waits on.
+    Supervise through events, never by polling or watchers.
+12. **Hand out small units, and take in a report on each.** Nothing the loop
+    needs lives only in a context: a fresh worker could do a unit from its spec
+    alone, and a fresh coordinator could carry the loop on from the records
+    alone.
     - A unit has one outcome and one piece of evidence that proves it, and a
       worker can finish and report it well inside one context. If its spec
       names several outcomes, cut it again. The steps to one outcome are one

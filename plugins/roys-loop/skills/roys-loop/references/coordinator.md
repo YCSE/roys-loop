@@ -152,9 +152,8 @@ holds the rules; this file says how you carry them out. Rule numbers are
   or a question to Roy. If an item has none, act on it now or ask Roy.
 - The worker that brings a CI result back is the owning worker for each head of
   a PR (rule 3), and a worker you assign for any other run, such as main's
-  after a merge. Roy: when no worker brings the CI result back, the coordinator
-  waits forever, and that is where worktrees pile up and never get cleaned up.
-  Take in a CI result that does reach you by itself, but never count on one.
+  after a merge. Take in a CI result that does reach you by itself, but never
+  count on one.
 - At each event, compare your records with the real state (`orca orchestration
   worker-list`, `orca worktree ps`, `git worktree list`, `gh pr list`) and fix
   each difference then. This is a check at an event, not polling. For a worker
