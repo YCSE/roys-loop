@@ -32,7 +32,8 @@ rules; this file says how you carry them out. Rule numbers are `SKILL.md`'s.
   way; after the coordinator re-reviews the final head, run the visual E2E.
   Report the PR number, the validation you ran, final tested HEAD, E2E flows
   and visual evidence. If validation or the visual E2E is blocked, report
-  blocked with the exact reason.
+  blocked with the exact reason. When no flow is affected, report the PR's list
+  of changed files instead.
   - Wait for CI in one blocking command, for example
     `gh pr checks <PR number> --watch`, not in a polling loop of your own. If
     your tool cuts the command off before CI ends, run it again: that is the

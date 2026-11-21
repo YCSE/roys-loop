@@ -70,6 +70,10 @@ work. Do not create a loop, a coordinator or workers for it.
    - Screenshots alone, unit tests alone, or a build or APK alone are not a
      completed visual E2E. If it cannot be performed, report the exact blocker
      and never mark it passed.
+   - A change that affects no screen flow, such as a documents-only PR, has no
+     visual E2E to run. Record that in the E2E's place with its evidence: the
+     PR's list of changed files at that head. It records that nothing is
+     affected; it never stands in for a flow that exists.
    - A code change after review invalidates that review and the affected visual
      E2E. Merge only when the current PR head is the head that CI passed on and
      that the review and the visual E2E cover. `references/review.md` says what

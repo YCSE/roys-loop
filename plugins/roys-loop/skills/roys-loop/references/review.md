@@ -39,7 +39,9 @@ Since 0.8.0 (2026-11-19) the coordinator's review is Claude Code's built-in
 5. Route verified findings to the existing owning Orca worker, who fixes and
    revalidates them and reports the new head with its CI result. Review that
    head as "Later heads" describes; repeat until no verified findings remain.
-   Then the owning worker runs the visual E2E on the affected flows. Before a
+   Then the owning worker runs the visual E2E on the affected flows. When the
+   worker reports that no flow is affected, compare its list of changed files
+   with `gh pr diff <PR number> --name-only` before you accept that. Before a
    final pass or authorized merge, apply the head check in "Later heads". Keep
    the
    project's other required checks and release gates.
