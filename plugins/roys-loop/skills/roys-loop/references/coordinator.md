@@ -149,25 +149,41 @@ holds the rules; this file says how you carry them out. Rule numbers are
   update the task's status, and take the step it unblocks: verify and review,
   route the fix, retry, merge, clean up, or ask Roy. An ending you did not
   record is an item you still think is running.
-- A worker that stopped because Roy switched its tool's login account has not
-  ended, and it is not a question for Roy: the switch was Roy's step, and
-  carrying the worker on into the new account is yours (rule 7).
+- A worker can stop because Roy switched its tool's login account. Carrying
+  it on into the new account is yours (rule 7) only when you know Roy made
+  the switch, because Roy said so or your own session now runs in that
+  account, and the prompt names that same account. Otherwise leave the
+  prompt as it is and ask Roy.
+  - It reaches you as an `escalation`: a stop without a `worker_done`, or a
+    prompt waiting for a person. It is not an ending to retry or replace.
+    When the first one arrives, read the screen of every worker of that tool
+    in that turn: the others may stop only at their next request, so their
+    notice may come late or never. A stopped worker is no live sender.
   - As seen in Claude Code: the session stops with a line saying it belongs
-    to another account and that a message lets you choose the account. If
-    no prompt is open yet, send the worker a short message. If it offers a
-    choice first, pick the one that copies the session to the new account.
-    Then choose Continue at "Copy this session to …?". Other tools may word
-    or handle this differently.
-  - These prompts take keys, not messages. Read the worker's screen (`orca
-    terminal read`) and send one key at a time (`orca terminal send`),
-    reading the screen again after each: do not trust the focused option or
-    a bare Enter.
-  - Check that the worker takes up its task again, and record in that task
-    that it moved and to which account.
-  - Only the copy is yours to choose. Any other choice in that prompt, and
-    every other approval or permission prompt, still goes to Roy under rule
-    7, and the copy is no leave to change a worker's model or provider (rule
-    9).
+    to another account and that a message lets you choose the account. If no
+    prompt is open yet, send the worker a short message with `orca
+    orchestration send --to dispatch:<id>`, which reaches the worker of an
+    open Dispatch as it is. Say only that it should carry on its unit, and
+    add no new work: after the copy the worker reads it as an instruction.
+    If the prompt offers a choice first, pick the one that copies the session
+    to the new account, then choose Continue at "Copy this session to …?".
+    Other tools may word or handle this differently.
+  - These prompts take keys, not messages. Read the screen with `orca
+    terminal read --screen --terminal <worker handle>`, and trust it only
+    when the result's `source` is `screen`; `screen-unavailable` is not the
+    screen. Send one key at a time with `orca terminal send --terminal
+    <worker handle> --text <raw bytes>` and no `--enter`: without
+    `--terminal` the key goes to your own terminal, and with `--enter` an
+    agent gets it as pasted text, where arrow keys do nothing. Read the
+    screen again after each key; do not trust the focused option or a bare
+    Enter.
+  - Then check that the worker takes up its unit again with the model you
+    recorded when it started. If the model differs, stop and tell Roy (rule
+    9). Record in its task that it moved, without the account's address.
+  - Every other prompt still goes to Roy (rule 7). When your own session
+    shares the tool and the login, it stops at the same prompt, and Roy
+    answers that one; once you are back, compare your records with the real
+    state, as at each event, before you carry the workers on.
 - Verify each result yourself before you report it: evidence, review status,
   checks, the final tested HEAD and the visual E2E evidence. A `worker_done` is
   a claim, not proof.
