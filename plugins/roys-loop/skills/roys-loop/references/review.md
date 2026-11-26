@@ -1,105 +1,106 @@
 # Code review in Roy's Loop
 
-Read this reference when the coordinator reviews or merges a worker's code
-change. Roy's Loop's role, permission, ownership and release rules still apply,
-and rule numbers are `SKILL.md`'s. A review is not permission to merge, deploy,
-change model settings, start a watcher, or bypass a required gate.
+Read this reference when your unit has a PR (worker) or when you merge one
+(coordinator). Roy's Loop's role, permission, ownership and release rules still
+apply, and rule numbers are `SKILL.md`'s. A review is not permission to merge,
+deploy, change model settings, start a watcher, or bypass a required gate.
 
 pstack interrogate is not used for this review.
 
-## From worker result to final head
+## The worker: review, fix, report
 
-1. The owning Orca worker opens the PR, revalidates it, waits for CI on that
-   head and reports the PR, its head, the CI result and the validation evidence.
-2. The coordinator identifies the PR's current commit, intended behavior and
-   base: `gh pr view <PR number> --json headRefOid,baseRefName`. Review the PR
-   diff from its base/merge-base to that exact head, and exclude unrelated dirty
-   changes. When a finding needs a run, use a safe checkout or isolated worktree
-   of that head without disturbing other owners. If a clean matching scope
-   cannot be established, report a blocker rather than review a stale or
-   contaminated diff.
-3. Run the built-in `/code-review <PR number>`. It is the command with effort
-   levels, not the `code-review:code-review` plugin skill. From inside another
-   skill, invoke it through the `Skill` tool with the PR number as its
-   argument; follow the tool's actual schema and do not invent flags.
-   - Do not pass `--fix`: the review reports findings and the owning worker
-     fixes them. Do not pass `--comment` unless the task asks for PR comments.
-     The level stays within rule 3's limit.
-   - Record the level the review reports it ran at.
-   - Read the PR head again after the review. If it moved while the review ran,
-     the review covers the old head only.
-4. Verify each finding before you route it: a finding is a claim. Read the
-   cited code at the reviewed head and reproduce the failure with a run where
-   you can. Keep verified failures that break the intended behavior, merge
-   findings with the same root cause, and record dropped findings with the
-   reason. No verified findings is a valid result, but it is not proof that no
-   other defects exist.
-5. Route verified findings to the existing owning Orca worker, who fixes and
-   revalidates them and reports the new head with its CI result. Review that
-   head as "Later heads" describes; repeat until no verified findings remain.
-   Then the owning worker runs the visual E2E on the affected flows. When the
-   worker reports that none is affected, read `gh pr diff <PR number>`
-   yourself: if a changed file could reach a screen, the E2E runs. Otherwise
-   record the list from `gh pr diff <PR number> --name-only`. Before a final
-   pass or authorized merge, apply the head check in "Later heads". Keep the
-   project's other required checks and release gates.
+1. Open the PR and read its head:
+   `gh pr view <PR number> --json headRefOid,baseRefName`. Your worktree is on
+   that head with nothing uncommitted: the review's fixes go into the working
+   tree, and anything else there would be mixed into them.
+2. Review the PR once, with your own tool's review command. Use the options
+   the command actually has; do not invent flags.
+   - **Claude Code**: the built-in `/code-review <level> <PR number> --fix`.
+     It is the command with effort levels, not the `code-review:code-review`
+     plugin skill. From inside another skill, invoke it through the `Skill`
+     tool with those arguments. Always pass the level your spec names: without
+     one the command reuses the level typed last, which nobody chose for this
+     PR. The level stays within rule 3's limit. Do not pass `--comment` unless
+     the task asks for PR comments.
+   - **Codex**: `/review`. From a shell it is
+     `codex review --base <base branch>`, which reviews the branch against the
+     PR's base.
+   - **OpenCode**: `/review <PR number>`.
+   - Where the command applied no fixes, make them yourself, once: fix what
+     the review found in this PR's change. A finding you leave goes in your
+     report with the reason.
+3. Read what changed and revalidate it. A fix that breaks the intended
+   behavior or the project's checks is corrected or dropped; say which in your
+   report. Commit and push.
+4. Wait for CI on that head and run the visual E2E on it. When either shows a
+   break, fix it and run both again on the new head. A break that is still
+   there after your fix is a report, not another try: the coordinator decides.
+   Do not run the review again, on that head or any later one.
+5. Report the PR and its full final head, the exact command you ran and the
+   level when the review reports one, the review's own report (what it found,
+   what was fixed, what was left and why), observable reviewer model details,
+   the validation you ran, the CI result, the visual E2E flows and evidence,
+   and blockers. Avoid secrets in the report. A typed command is not evidence
+   that the review ran; its own report is. If a step cannot be run or proved,
+   report it as blocked, not passed.
 
-Record the PR and full reviewed head, scope and intent, the exact invocation and
-level, observable reviewer model details, verified repro commands and outcomes,
-dropped-finding counts and reasons, fix/re-review heads, the kind of each
-re-review (full `/code-review`, delta review or carry-over), visual E2E flows and
-evidence, and blockers. Avoid secrets in repros and evidence. A typed command is
-not evidence that the review ran; its own report is. If a required step cannot
-be run or proved, report it as blocked, not passed.
+## The coordinator: check the report, decide
+
+- Check the report against the unit's spec: the review's own report is there,
+  and the head that CI passed on and the visual E2E covers is the PR's current
+  head (`gh pr view <PR number> --json headRefOid`). That is the whole check.
+  Do not run the review, a fix or the E2E again, verify the review's findings
+  or add a check of your own.
+- When the worker reports that no flow is affected, read
+  `gh pr diff <PR number> --name-only` yourself: if a changed file could reach
+  a screen, the E2E runs. Otherwise record that list in the E2E's place.
+- Then merge, within the project's other required checks and release gates.
+- When a report leaves something open, decide what it needs and record the
+  decision: merging as it is, a fix unit to the owner, or closing the PR and
+  putting what the goal still needs back on the plan. Findings the review left
+  unfixed hold a merge only if you decide they do. A failing CI run or visual
+  E2E always holds it (rule 7).
 
 ## Later heads
 
-The full `/code-review` runs at the first code-ready head, and again only for
-new behavior, a redesign or a large new diff. Classify each later head before
-you review it.
+The review runs once per PR, and no later head gets another. New behavior is a
+new unit with its own PR, not a later head of this one.
 
-- **The owner changed code.** For a fix round, run a delta review of the new
-  head: rerun each verified finding's command, then review the diff from the
-  reviewed head to the new head. Record it as a delta review with both heads. It
-  is not a full `/code-review`, so never label it as one. The same holds for a
-  mutation check or any other variant: record it under its own name.
-  Re-run the affected visual E2E after the code change.
+- **The owner changed code.** After a fix, CI and the affected visual E2E run
+  again on that head.
 - **Only main moved.** When main was merged into the branch, or the branch was
   rebased onto main, compare the PR's own patch at the two heads. Fetch first so
   that `origin/main` is current.
 
   ```sh
   git fetch origin
-  git diff --binary "$(git merge-base origin/main <reviewed head>)" <reviewed head> | git patch-id --stable
+  git diff --binary "$(git merge-base origin/main <reported head>)" <reported head> | git patch-id --stable
   git diff --binary "$(git merge-base origin/main <new head>)" <new head> | git patch-id --stable
   ```
 
   When the first field of both outputs is the same, the patch is identical. The
-  review and visual E2E then carry over to the new head, and only CI runs again,
-  on that exact head. Record both heads and the patch id. When the ids differ,
-  an output is empty or a command fails, treat the head as changed code. The id
+  visual E2E then carries over to the new head, and only CI runs again, on that
+  exact head. Record both heads and the patch id. When the ids differ, an
+  output is empty or a command fails, treat the head as changed code. The id
   also changes when main touched the context lines around the PR's hunks. An
   identical patch does not show that main's own changes leave the PR's behavior
   intact; the validation of the integrated main in `coordinator.md` covers
   that.
-- **Before a merge.** For rule 3's head condition, a review and visual E2E that
-  carried over cover the new head. Rule 3's merge command refuses a head that
-  moved in the meantime.
+- **Before a merge.** For rule 3's head condition, a visual E2E that carried
+  over covers the new head. Rule 3's merge command refuses a head that moved in
+  the meantime.
 
-Review and verification clones and worktrees are the coordinator's scratch. As
-soon as the findings or the check are recorded, move the repros that the report
-cites into the report's folder, then remove the scratch once nothing still uses
-it and nothing unsaved is left in it. Keep the report.
+A clone or worktree made for a check is scratch. Once the check is recorded and
+nothing unsaved is left in it, remove it. Keep the report.
 
 ## Model and platform boundaries
 
 - Worker models follow rule 9. Preserve existing owners.
-- `/code-review`'s reviewers are Claude subagents, not Orca workers. They run
-  on the configured default subagent model, which may differ from the session
-  model, and may incur additional model usage. Report actual models only when
-  observable.
-- If the review cannot run on the exact PR head, report the exact blocker. Do
-  not silently relax an explicit model restriction or claim the review passed.
-- `/code-review` is a Claude Code command. A coordinator in a tool without it
-  (Codex, OpenCode) reports the blocker. Do not run that tool's own reviewer,
-  such as Codex `/review` or `codex review`, and present it as `/code-review`.
+- A review is additional model usage. `/code-review`'s reviewers are Claude
+  subagents, not Orca workers, and run on the configured default subagent
+  model, which may differ from the session model. `/review` runs on what its
+  tool is configured with. Pass no model or configuration override to a review
+  command (rule 9). Report actual models only when observable.
+- If the review cannot run on the PR, or you cannot start the command from
+  inside your session, report the exact blocker. Do not silently relax an
+  explicit model restriction or claim the review passed.

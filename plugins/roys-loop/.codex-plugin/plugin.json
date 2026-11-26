@@ -1,6 +1,6 @@
 {
   "name": "roys-loop",
-  "version": "0.17.0",
+  "version": "0.18.0",
   "description": "Role rules for Roy's PMs (dot, Hermes, grokbot; status reports only), the Orca floating coordinator (one per project) and Orca workers: routing, ownership, PR review and release scope. Content only.",
   "author": {
     "name": "Roy"
@@ -10,7 +10,7 @@
   "interface": {
     "displayName": "Roy's Loop",
     "shortDescription": "PM, coordinator and worker role rules",
-    "longDescription": "One Orca floating coordinator per project runs the work through Orca workers, with PR-scoped coordinator /code-review, preserved ownership and coordinator-decided release scope; PMs (dot, Hermes, grokbot) only report status and relay. Adds no loop, ledger, polling or automation.",
+    "longDescription": "One Orca floating coordinator per project runs the work through Orca workers, with one worker review per PR, preserved ownership and coordinator-decided release scope; PMs (dot, Hermes, grokbot) only report status and relay. Adds no loop, ledger, polling or automation.",
     "developerName": "Roy",
     "category": "Productivity",
     "capabilities": ["Interactive"],

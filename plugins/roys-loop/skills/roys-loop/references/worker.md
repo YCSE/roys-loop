@@ -25,15 +25,13 @@ rules; this file says how you carry them out. Rule numbers are `SKILL.md`'s.
   - Report completed or failed only when that is the actual outcome. Never mark
     waiting, question or blocked work as failed, and never promote it to
     completed.
-- For code, do the part of rule 3's sequence that your task names: open the PR,
-  revalidate it, wait for CI on that head to finish, and report the PR, its
-  head, the CI result and the validation evidence to the coordinator. Fix the
-  coordinator's verified findings, revalidate and report each new head the same
-  way; after the coordinator re-reviews the final head, run the visual E2E.
-  Report the PR number, the validation you ran, final tested HEAD, E2E flows
-  and visual evidence. If validation or the visual E2E is blocked, report
-  blocked with the exact reason. When you find no flow affected, report that
-  with the PR's list of changed files; the coordinator decides (rule 3).
+- For code, do the part of rule 3's sequence that your task names, as
+  [the review guide](review.md) lays it out: open the PR, review it once with
+  your tool's review command, revalidate and push the fixes, wait for CI on
+  that head to finish, run the visual E2E on it and report. If validation or
+  the visual E2E is blocked, report blocked with
+  the exact reason. When you find no flow affected, report that with the PR's
+  list of changed files; the coordinator decides (rule 3).
   - Wait for CI in one blocking command, for example
     `gh pr checks <PR number> --watch`, not in a polling loop of your own. If
     your tool cuts the command off before CI ends, run it again: that is the
@@ -45,5 +43,6 @@ rules; this file says how you carry them out. Rule numbers are `SKILL.md`'s.
 - Create no worktree, clone or branch beyond your task's. Before you report,
   remove any scratch copy you made and stop the shells and background commands
   you started, unless the task says to leave one running; name any you left.
-- No code review means no reviewer of any kind: `/review`, `/code-review`,
-  `codex review` or any other, even when your tool has them (rule 1).
+- The review is the one command rule 3 names for your tool, run once, on the
+  PR your task names. Run no second reviewer, even when your tool has one, and
+  review no other PR (rule 1).
