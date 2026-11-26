@@ -1,9 +1,10 @@
 # Code review in Roy's Loop
 
-Read this reference when your unit has a PR (worker) or when you merge one
-(coordinator). Roy's Loop's role, permission, ownership and release rules still
-apply, and rule numbers are `SKILL.md`'s. A review is not permission to merge,
-deploy, change model settings, start a watcher, or bypass a required gate.
+Read this reference when your unit has a PR (worker) or when one is reported
+to you (coordinator). Roy's Loop's role, permission, ownership and release
+rules still apply, and rule numbers are `SKILL.md`'s. A review is not
+permission to merge, deploy, change model settings, start a watcher, or bypass
+a required gate.
 
 pstack interrogate is not used for this review.
 
@@ -12,7 +13,9 @@ pstack interrogate is not used for this review.
 1. Open the PR and read its head:
    `gh pr view <PR number> --json headRefOid,baseRefName`. Your worktree is on
    that head with nothing uncommitted: the review's fixes go into the working
-   tree, and anything else there would be mixed into them.
+   tree, and anything else there would be mixed into them. Fetch first. A
+   review that takes in commits that are not the PR's, as one against a stale
+   base does, is a blocker to report, not a review.
 2. Review the PR once, with your own tool's review command. Use the options
    the command actually has; do not invent flags.
    - **Claude Code**: the built-in `/code-review <level> <PR number> --fix`.
@@ -20,8 +23,9 @@ pstack interrogate is not used for this review.
      plugin skill. From inside another skill, invoke it through the `Skill`
      tool with those arguments. Always pass the level your spec names: without
      one the command reuses the level typed last, which nobody chose for this
-     PR. The level stays within rule 3's limit. Do not pass `--comment` unless
-     the task asks for PR comments.
+     PR. If your spec names none, ask the coordinator before you run it. The
+     level stays within rule 3's limit. Do not pass `--comment` unless the
+     task asks for PR comments.
    - **Codex**: `/review`. From a shell it is
      `codex review --base <base branch>`, which reviews the branch against the
      PR's base.
@@ -30,8 +34,9 @@ pstack interrogate is not used for this review.
      the review found in this PR's change. A finding you leave goes in your
      report with the reason.
 3. Read what changed and revalidate it. A fix that breaks the intended
-   behavior or the project's checks is corrected or dropped; say which in your
-   report. Commit and push.
+   behavior or the project's checks is corrected or dropped, and one outside
+   the paths your spec lets you write is dropped; say which in your report.
+   Commit and push.
 4. Wait for CI on that head and run the visual E2E on it. When either shows a
    break, fix it and run both again on the new head. A break that is still
    there after your fix is a report, not another try: the coordinator decides.
@@ -48,18 +53,23 @@ pstack interrogate is not used for this review.
 
 - Check the report against the unit's spec: the review's own report is there,
   and the head that CI passed on and the visual E2E covers is the PR's current
-  head (`gh pr view <PR number> --json headRefOid`). That is the whole check.
+  head. One call reads that head and the results of its checks from the forge:
+  `gh pr view <PR number> --json headRefOid,statusCheckRollup`. For a PR the
+  worker reports as having no CI, that list is empty. That is the whole check.
   Do not run the review, a fix or the E2E again, verify the review's findings
   or add a check of your own.
 - When the worker reports that no flow is affected, read
-  `gh pr diff <PR number> --name-only` yourself: if a changed file could reach
-  a screen, the E2E runs. Otherwise record that list in the E2E's place.
+  `gh pr diff <PR number>` yourself: if a change could reach a screen, the E2E
+  runs. Otherwise record the list from `gh pr diff <PR number> --name-only` in
+  the E2E's place.
 - Then merge, within the project's other required checks and release gates.
 - When a report leaves something open, decide what it needs and record the
   decision: merging as it is, a fix unit to the owner, or closing the PR and
-  putting what the goal still needs back on the plan. Findings the review left
-  unfixed hold a merge only if you decide they do. A failing CI run or visual
-  E2E always holds it (rule 7).
+  putting what the goal still needs back on the plan. Merging as it is is for
+  findings the review left unfixed: they hold a merge only if you decide they
+  do. A review that did not run, CI that failed or has not finished on that
+  head, and a visual E2E that failed or does not cover it always hold it
+  (rules 3 and 7). Getting a blocked one run is yours to arrange.
 
 ## Later heads
 
@@ -69,8 +79,9 @@ new unit with its own PR, not a later head of this one.
 - **The owner changed code.** After a fix, CI and the affected visual E2E run
   again on that head.
 - **Only main moved.** When main was merged into the branch, or the branch was
-  rebased onto main, compare the PR's own patch at the two heads. Fetch first so
-  that `origin/main` is current.
+  rebased onto main, the worker that did it compares the PR's own patch at the
+  two heads and reports both heads and the patch id. Fetch first so that
+  `origin/main` is current.
 
   ```sh
   git fetch origin
@@ -80,7 +91,7 @@ new unit with its own PR, not a later head of this one.
 
   When the first field of both outputs is the same, the patch is identical. The
   visual E2E then carries over to the new head, and only CI runs again, on that
-  exact head. Record both heads and the patch id. When the ids differ, an
+  exact head. When the ids differ, an
   output is empty or a command fails, treat the head as changed code. The id
   also changes when main touched the context lines around the PR's hunks. An
   identical patch does not show that main's own changes leave the PR's behavior

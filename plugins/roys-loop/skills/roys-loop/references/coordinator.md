@@ -149,7 +149,7 @@ holds the rules; this file says how you carry them out. Rule numbers are
 - Record each item when you open it: every task, worker, worktree, branch, PR,
   temporary clone and background shell or job, with its owner and the event
   that closes it. Use Orca's task and worker lists, and the task's report for
-  what Orca does not list (a review clone, a background command in your own
+  what Orca does not list (a scratch clone, a background command in your own
   session).
 - Keep your state readable without being asked: update Orca task status and
   each task's report, where Roy and PMs can read them, at each opening and each
@@ -195,9 +195,11 @@ holds the rules; this file says how you carry them out. Rule numbers are
     shares the tool and the login, it stops at the same prompt, and Roy
     answers that one; once you are back, compare your records with the real
     state, as at each event, before you carry the workers on.
-- Verify each result yourself before you report it: evidence, review status,
-  checks, the final tested HEAD and the visual E2E evidence. A `worker_done` is
-  a claim, not proof.
+- Check each result before you report it, against records you can read
+  yourself: the worker's report and its evidence, and for a PR the head and
+  its checks on the forge ([the review guide](review.md)'s one check). A
+  `worker_done` is a claim, not proof. Checking it means reading those
+  records, never running the work again (rule 3).
 - Before you end a turn to wait, every open item needs a live sender whose
   report or exit will wake you: a working worker, a background job of your own
   or a question to Roy. If an item has none, act on it now or ask Roy.
@@ -232,9 +234,9 @@ holds the rules; this file says how you carry them out. Rule numbers are
   review and ask for no second one. Release scope and approval gates still
   decide when a PR merges (rules 5 and 7).
 - **Keep the loop closable (rule 10).** Open only the worktrees, clones and
-  workers you can close before the loop ends. Remove a verification or review
-  worktree or clone as soon as its check is recorded, not at the end; the
-  review guide says what to keep first.
+  workers you can close before the loop ends. Remove a scratch worktree or
+  clone as soon as its check is recorded, not at the end, once the evidence
+  its report cites is somewhere durable.
 - Merge every included PR that has passed rule 3's gates and clean each one up
   as it merges, so that before you deploy the included work remains only on
   main. Then validate the integrated main; if that waits on CI, a worker
@@ -277,8 +279,9 @@ and keep the loop from closing.
   - any valuable uncommitted, untracked or ignored data, relevant stashes,
     evidence that must be retained, and downstream dependencies.
 - A PR you closed unmerged ("End the loop") is cleaned up the same way. In
-  place of the merge state, verify that its branch has nothing unpushed and
-  that its number and head are in your records.
+  place of the merge state, verify that its branch, local and remote, is at
+  the PR's head (`gh pr view <PR number> --json headRefOid`), so that nothing
+  on it lies outside the PR, and that its number and head are in your records.
 - Preserve active, unmerged, excluded, user-owned or uncertain work and data.
   Move needed evidence somewhere durable before removing its only copy. Do not
   expose or relocate credentials.
@@ -293,9 +296,10 @@ and keep the loop from closing.
 
 ## End the loop (rule 10)
 
-- Finish every branch: merge it into main through rule 3's gates and clean it
-  up in the same turn. Excluded PRs from rule 5 merge too once the deploy is
-  done; if merging to main itself deploys in this project, ask Roy first.
+- Finish every branch: merge it into main through rule 3's gates, or close its
+  PR as below, and clean it up in the same turn. Excluded PRs from rule 5
+  merge too once the deploy is done; if merging to main itself deploys in this
+  project, ask Roy first.
 - Uncommitted or untracked work in a loop worktree belongs to its PR: commit
   it there, or ask Roy before discarding it.
 - A branch that cannot pass its gates does not stay open waiting. Decide it

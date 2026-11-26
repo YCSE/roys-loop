@@ -43,6 +43,7 @@ rules; this file says how you carry them out. Rule numbers are `SKILL.md`'s.
 - Create no worktree, clone or branch beyond your task's. Before you report,
   remove any scratch copy you made and stop the shells and background commands
   you started, unless the task says to leave one running; name any you left.
-- The review is the one command rule 3 names for your tool, run once, on the
-  PR your task names. Run no second reviewer, even when your tool has one, and
-  review no other PR (rule 1).
+- The review is the one command rule 3 names for your tool. It runs once per
+  PR, not once per worker: run it only when your task names it, on the PR your
+  task names. Run no second reviewer, even when your tool has one, and review
+  no other PR (rule 1).

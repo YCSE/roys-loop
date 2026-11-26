@@ -16,7 +16,7 @@ the "Base directory for this skill" line):
 
 - PM: `references/pm.md`
 - Coordinator: `references/coordinator.md`, with `references/review.md` when
-  you merge a PR and `references/updating.md` when the skill itself changes
+  a PR is reported and `references/updating.md` when the skill itself changes
   (rule 8)
 - Worker: `references/worker.md`, with `references/review.md` when your unit
   has a PR and `references/updating.md` when your task changes this skill
@@ -70,9 +70,9 @@ work. Do not create a loop, a coordinator or workers for it.
    reviewed again: a review can always find more. The coordinator checks that
    report and decides the merge; it reruns nothing. Findings the review left
    unfixed hold the merge only if the coordinator decides they do, and merging
-   with them recorded waives nothing. Whatever else a report leaves open is
-   the coordinator's to decide too: another fix, or closing the PR. It asks
-   Roy only when the goal's direction has to change.
+   with them recorded is no waiver (rule 7). Whatever else a report leaves
+   open is the coordinator's to decide too: another fix, or closing the PR.
+   About a PR it asks Roy only when the goal's direction has to change.
    - Screenshots alone, unit tests alone, or a build or APK alone are not a
      completed visual E2E. If it cannot be performed, report the exact blocker
      and never mark it passed.
@@ -83,8 +83,8 @@ work. Do not create a loop, a coordinator or workers for it.
      recorded in the E2E's place.
    - Merge only after the review, and only a head that CI passed on and that
      the visual E2E covers, and have the forge enforce it:
-     `gh pr merge <PR number> --match-head-commit <that head>`. Code changed
-     after the visual E2E runs its flows again. When only main moved,
+     `gh pr merge <PR number> --match-head-commit <that head>`. When code
+     changes after the visual E2E, its flows run again. When only main moved,
      `references/review.md` has the carry-over.
    - Raising the review's cost is Roy's call: no `max` or `ultra` level unless
      Roy asks for it. `ultra` is a separately billed cloud review that the user
