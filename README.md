@@ -3,8 +3,8 @@
 Role rules for running software work through agents:
 
 - **PMs** report the loop's state (running, stopped, blockers) and relay requests. They do not steer.
-- **One Orca floating coordinator per project** owns the loop: it cuts the goal into small units, keeps the plan as an Orca Task, hands a worker one unit at a time and takes in a report on each, turns what a unit proved into a constraint for later units, reviews each PR with `/code-review`, and decides merges and release scope. It tracks every worker, worktree, branch and shell the loop opens and takes in each ending as it arrives, so a loop ends only when every branch is merged and just `main` is left.
-- **Orca workers** take one unit at a time and report on each: they open PRs, revalidate, bring back the CI result for each head, fix the coordinator's verified findings and run the visual E2E. They run no reviews.
+- **One Orca floating coordinator per project** owns the loop: it cuts the goal into small units, keeps the plan as an Orca Task, hands a worker one unit at a time and takes in a report on each, turns what a unit proved into a constraint for later units, checks each PR's report, and decides by itself what a PR still needs, when it merges or closes, and the release scope. About a PR it asks Roy only when the goal's direction has to change. It tracks every worker, worktree, branch and shell the loop opens and takes in each ending as it arrives, so a loop ends only when every branch is merged or closed and just `main` is left.
+- **Orca workers** take one unit at a time and report on each: they open PRs, review each one once with their own tool's review command (`/code-review <level> <PR number> --fix` in Claude Code, `/review` in Codex and OpenCode), bring back the CI result for the final head and run the visual E2E.
 
 It is a set of rules, not a process. It adds no scheduler, polling or daemon, and loading it changes nothing by itself.
 
@@ -61,7 +61,7 @@ Running sessions keep the old text until they reload. In Claude Code, run `/relo
 
 ## Changing the rules
 
-Edit a clone and raise `version` in both `plugins/roys-loop/.claude-plugin/plugin.json` and `plugins/roys-loop/.codex-plugin/plugin.json`, so that `plugin update` sees a new release. Land the change on `main`: through a PR reviewed by the coordinator when the change runs inside the loop (rule 3), or directly when Roy makes or orders it outside the loop.
+Edit a clone and raise `version` in both `plugins/roys-loop/.claude-plugin/plugin.json` and `plugins/roys-loop/.codex-plugin/plugin.json`, so that `plugin update` sees a new release. Land the change on `main`: through a PR under rule 3 when the change runs inside the loop, or directly when Roy makes or orders it outside the loop.
 
 Keep `SKILL.md` at 13,500 bytes or less:
 

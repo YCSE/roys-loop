@@ -1,6 +1,6 @@
 ---
 name: roys-loop
-description: Roy's Loop role rules for PMs (dot, Hermes, grokbot), the Orca floating coordinator (one per project), and Orca workers. Load it again after a context compaction if you hold one of these roles and no longer have its text. Use when you are a PM reporting loop status or relaying Roy's goal or a GitHub/Tralalero request to a project's coordinator; when you are an Orca coordinator cutting work into units, running parallel workers, assigning, correcting or verifying workers, deciding /goal use and release scope, tracking what is open, cleaning up after merges or ending a loop; when you are an Orca worker, assigned work as a worker or running in an Orca Task or Dispatch context (a preamble with a Task ID); when a goal starts and the worker model must be settled; when Roy corrects how Roy's Loop operates or sessions must reload the updated skill; or when work involves PR-scoped code changes, the coordinator's /code-review, visual E2E, merges or deployment scope. Also use on "Roy's Loop", "로이 루프" or "로이의 루프".
+description: Roy's Loop role rules for PMs (dot, Hermes, grokbot), the Orca floating coordinator (one per project), and Orca workers. Load it again after a context compaction if you hold one of these roles and no longer have its text. Use when you are a PM reporting loop status or relaying Roy's goal or a GitHub/Tralalero request to a project's coordinator; when you are an Orca coordinator cutting work into units, running parallel workers, assigning, correcting or verifying workers, deciding /goal use and release scope, tracking what is open, cleaning up after merges or ending a loop; when you are an Orca worker, assigned work as a worker or running in an Orca Task or Dispatch context (a preamble with a Task ID); when a goal starts and the worker model must be settled; when Roy corrects how Roy's Loop operates or sessions must reload the updated skill; or when work involves PR-scoped code changes, the worker's /code-review or /review, visual E2E, merges or deployment scope. Also use on "Roy's Loop", "로이 루프" or "로이의 루프".
 ---
 
 # Roy's Loop
@@ -16,10 +16,10 @@ the "Base directory for this skill" line):
 
 - PM: `references/pm.md`
 - Coordinator: `references/coordinator.md`, with `references/review.md` when
-  you review or merge a PR and `references/updating.md` when the skill itself
-  changes (rule 8)
-- Worker: `references/worker.md`, with `references/updating.md` when your
-  task changes this skill
+  a PR is reported and `references/updating.md` when the skill itself changes
+  (rule 8)
+- Worker: `references/worker.md`, with `references/review.md` when your unit
+  has a PR and `references/updating.md` when your task changes this skill
 
 **If your role file's text is not in front of you, read it before your next
 step.** That is so when this skill has just loaded, and again after a context
@@ -54,19 +54,25 @@ work. Do not create a loop, a coordinator or workers for it.
 1. **Route through the roles.** A PM reports and relays. It does not implement,
    direct, assign or verify the work. The coordinator assigns workers and does
    not do a worker's job itself. A worker does its assigned unit and nothing
-   else: unless its task says so it starts no workers, merges nothing and
-   deploys nothing, and it never runs a code review.
+   else: unless its task says so it starts no workers, reviews no PR, merges
+   nothing and deploys nothing.
 2. **Keep existing ownership.** Before you start new work or a new worker, check
    whether a worker, session or PR already owns it. If one does, continue or steer
    that one. Never duplicate a worker or its work.
-3. **Every code change is PR-scoped.** The worker opens the PR, revalidates it,
-   waits for CI on that head to finish and reports the PR, the head and the CI
-   result. It does the same for every later head of that PR. The coordinator,
-   never a worker, reviews the PR's actual current head with
-   `/code-review <PR number>`, verifies the findings, routes verified findings
-   back to the owner, and reviews the updated head again. Repeat until no
-   verified findings remain. Then the worker runs an E2E with actual visual
-   inspection of the affected flows on the final head.
+3. **Every code change is PR-scoped.** The worker opens the PR and reviews it
+   once itself with its own tool's review command: in Claude Code
+   `/code-review <level> <PR number> --fix` at the level its spec names, in
+   Codex or OpenCode `/review`. Where the command applies no fixes, the worker
+   makes them. It revalidates and pushes the fixes, waits for CI on that head
+   to finish, runs an E2E with actual visual inspection of the affected flows
+   on that head, and reports the PR, the head, the command it ran, the
+   review's own report, the CI result and the E2E evidence. No later head is
+   reviewed again: a review can always find more. The coordinator checks that
+   report and decides the merge; it reruns nothing. Findings the review left
+   unfixed hold the merge only if the coordinator decides they do, and merging
+   with them recorded is no waiver (rule 7). Whatever else a report leaves
+   open is the coordinator's to decide too: another fix, or closing the PR.
+   About a PR it asks Roy only when the goal's direction has to change.
    - Screenshots alone, unit tests alone, or a build or APK alone are not a
      completed visual E2E. If it cannot be performed, report the exact blocker
      and never mark it passed.
@@ -75,19 +81,18 @@ work. Do not create a loop, a coordinator or workers for it.
      the worker's word alone: when a changed file could reach a screen, the
      E2E runs. Otherwise the PR's list of changed files at that head is
      recorded in the E2E's place.
-   - A code change after review invalidates that review and the affected visual
-     E2E. Merge only when the current PR head is the head that CI passed on and
-     that the review and the visual E2E cover, and have the forge enforce it:
-     `gh pr merge <PR number> --match-head-commit <that head>`.
-     `references/review.md` says what a later head needs: a delta review for a
-     fix round, a carry-over when only main moved.
+   - Merge only after the review, and only a head that CI passed on and that
+     the visual E2E covers, and have the forge enforce it:
+     `gh pr merge <PR number> --match-head-commit <that head>`. When code
+     changes after the visual E2E, its flows run again. When only main moved,
+     `references/review.md` has the carry-over.
    - Raising the review's cost is Roy's call: no `max` or `ultra` level unless
      Roy asks for it. `ultra` is a separately billed cloud review that the user
      triggers.
    - This also applies to work done under `/goal`. Keep every check and review
-     the project already requires. If `/code-review` or any other requested
-     command is not available in your tool, say so. Never run a different
-     command and present it as the requested one.
+     the project already requires. If a requested command is not available in
+     your tool, say so. Never run a different command and present it as the
+     requested one.
 4. **`/goal` is the coordinator's choice.** Use it only when it suits the task, and
    only after confirming that the current tool actually supports it and that it
    is active. Typing the command is not proof that it ran.
@@ -161,7 +166,7 @@ work. Do not create a loop, a coordinator or workers for it.
     - A unit has one outcome and one piece of evidence that proves it, and a
       worker can finish and report it well inside one context. If its spec
       names several outcomes, cut it again. The steps to one outcome are one
-      unit: opening a PR, revalidating it, waiting for CI on that head and
+      unit: opening a PR, reviewing it, waiting for CI on that head and
       reporting it is one.
     - Before the first worker starts, the coordinator records the plan: one
       Orca Task that lists the goal's units, the constraints (rule 13), and
@@ -178,9 +183,9 @@ work. Do not create a loop, a coordinator or workers for it.
       from the summary.
 13. **Turn what a unit proved into a constraint for later units.** Without this
     a loop is fast and never gets smarter: the same failure comes back in the
-    next unit and in the next loop. When the coordinator accepts a unit or
-    verifies a finding, it writes down what that proved and later work must
-    respect, in one line with what it was derived from. A guess, or the unit's
+    next unit and in the next loop. When the coordinator accepts a unit, it
+    writes down what that proved and later work must respect, in one line with
+    what it was derived from. A guess, or the unit's
     output restated, is not a constraint. The constraint lands where the work
     is cut: in how the rest is cut and in the spec of every later unit it
     applies to. What holds beyond this goal goes into the project's own agent
